@@ -1,0 +1,87 @@
+{
+  "name": "Garnish \u2014 Healthy Recipes & Cooking",
+  "short_name": "Garnish",
+  "description": "49 healthy recipes with step-by-step animated cooking mode and one-click Amazon Fresh shopping.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#27500A",
+  "orientation": "portrait-primary",
+  "categories": [
+    "food",
+    "health",
+    "lifestyle"
+  ],
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "label": "Recipe browser"
+    },
+    {
+      "src": "/screenshots/cook.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "label": "Cooking mode"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "High Protein Recipes",
+      "short_name": "High Protein",
+      "description": "Browse high protein healthy recipes",
+      "url": "/?filter=High+Protein",
+      "icons": [
+        {
+          "src": "/icons/icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Quick Meals",
+      "short_name": "Quick Meals",
+      "description": "Recipes ready in under 20 minutes",
+      "url": "/?filter=Quick",
+      "icons": [
+        {
+          "src": "/icons/icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Meal Prep",
+      "short_name": "Meal Prep",
+      "description": "Weekly meal prep recipes",
+      "url": "/?filter=Meal+Prep",
+      "icons": [
+        {
+          "src": "/icons/icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}

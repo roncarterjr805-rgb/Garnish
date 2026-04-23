@@ -179,6 +179,8 @@
 <link rel="preconnect" href="https://www.googletagmanager.com"/>
 <link rel="dns-prefetch" href="https://www.amazon.com"/>
 <link rel="dns-prefetch" href="https://images.unsplash.com"/>
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
 <script>
 window.dataLayer=window.dataLayer||[];
@@ -197,6 +199,111 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .nav-back{display:flex;align-items:center;gap:5px;font-size:14px;color:var(--color-text-secondary,#666);background:none;border:none;cursor:pointer;padding:0}
 .nav-back:hover{color:var(--color-text-primary,#111)}
 .nav-right{font-size:12px;color:var(--color-text-secondary,#666)}
+
+/* ═══ AUTH NAV AREA ═══ */
+.nav-auth{display:flex;align-items:center;gap:8px}
+.nav-avatar{width:30px;height:30px;border-radius:50%;background:var(--gd);color:white;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;flex-shrink:0}
+.nav-cookbook-btn{font-size:12px;padding:5px 12px;border-radius:8px;background:var(--gl);color:var(--gd);border:0.5px solid var(--gb);cursor:pointer;font-weight:500;white-space:nowrap}
+.nav-cookbook-btn:hover{background:var(--gb)}
+.nav-login-btn{font-size:12px;padding:5px 12px;border-radius:8px;background:var(--gd);color:white;border:none;cursor:pointer;font-weight:500;white-space:nowrap}
+.nav-login-btn:hover{opacity:.9}
+
+/* ═══ AUTH MODAL ═══ */
+.auth-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;align-items:center;justify-content:center;padding:20px}
+.auth-overlay.open{display:flex}
+.auth-modal{background:var(--color-background-primary,#fff);border-radius:20px;width:100%;max-width:380px;padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.auth-logo{text-align:center;font-size:32px;margin-bottom:4px}
+.auth-title{text-align:center;font-size:20px;font-weight:500;color:var(--color-text-primary,#111);margin-bottom:4px}
+.auth-subtitle{text-align:center;font-size:13px;color:var(--color-text-secondary,#666);margin-bottom:24px}
+.auth-tabs{display:flex;border-radius:10px;background:var(--color-background-secondary,#f3f4f6);padding:3px;margin-bottom:20px;gap:3px}
+.auth-tab{flex:1;padding:8px;border-radius:8px;border:none;background:none;font-size:14px;font-weight:500;cursor:pointer;color:var(--color-text-secondary,#666);transition:all .15s}
+.auth-tab.active{background:var(--color-background-primary,#fff);color:var(--color-text-primary,#111);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.auth-field{margin-bottom:12px}
+.auth-label{font-size:12px;font-weight:500;color:var(--color-text-secondary,#666);display:block;margin-bottom:5px}
+.auth-input{width:100%;padding:11px 14px;border-radius:10px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:var(--color-background-secondary,#f3f4f6);font-size:14px;color:var(--color-text-primary,#111);outline:none;box-sizing:border-box}
+.auth-input:focus{border-color:var(--gm);background:var(--color-background-primary,#fff)}
+.auth-submit{width:100%;padding:13px;border-radius:12px;border:none;background:var(--gd);color:white;font-size:15px;font-weight:500;cursor:pointer;margin-top:4px;transition:opacity .15s}
+.auth-submit:hover{opacity:.9}
+.auth-submit:disabled{opacity:.5;cursor:not-allowed}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:16px 0}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:0.5px;background:var(--color-border-tertiary,rgba(0,0,0,.1))}
+.auth-divider span{font-size:12px;color:var(--color-text-secondary,#666)}
+.auth-google-btn{width:100%;padding:12px;border-radius:12px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:var(--color-background-primary,#fff);font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--color-text-primary,#111);transition:background .12s}
+.auth-google-btn:hover{background:var(--color-background-secondary,#f3f4f6)}
+.auth-msg{font-size:13px;text-align:center;margin-top:12px;min-height:18px}
+.auth-msg.error{color:#c0392b}
+.auth-msg.success{color:var(--gm)}
+.auth-close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--color-text-secondary,#666);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.auth-close:hover{background:var(--color-background-secondary,#f3f4f6)}
+
+/* ═══ USER DROPDOWN ═══ */
+.user-menu{display:none;position:absolute;top:52px;right:16px;background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.1));border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.15);z-index:300;min-width:180px;overflow:hidden}
+.user-menu.open{display:block}
+.user-menu-email{padding:12px 16px;font-size:12px;color:var(--color-text-secondary,#666);border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.1));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-menu-item{display:flex;align-items:center;gap:10px;padding:12px 16px;font-size:14px;color:var(--color-text-primary,#111);cursor:pointer;border:none;background:none;width:100%;text-align:left}
+.user-menu-item:hover{background:var(--color-background-secondary,#f3f4f6)}
+.user-menu-item.danger{color:#c0392b}
+
+/* ═══ COOKBOOK SCREEN ═══ */
+.cookbook-wrap{max-width:680px;margin:0 auto;padding:16px 16px 60px}
+.cookbook-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.cookbook-title{font-size:22px;font-weight:500;color:var(--color-text-primary,#111)}
+.cookbook-count{font-size:13px;color:var(--color-text-secondary,#666);margin-top:2px}
+.add-recipe-btn{display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:12px;border:none;background:var(--gd);color:white;font-size:14px;font-weight:500;cursor:pointer;flex-shrink:0}
+.add-recipe-btn:hover{opacity:.9}
+.cookbook-empty{text-align:center;padding:60px 20px}
+.cookbook-empty-icon{font-size:52px;margin-bottom:16px}
+.cookbook-empty-title{font-size:18px;font-weight:500;color:var(--color-text-primary,#111);margin-bottom:8px}
+.cookbook-empty-sub{font-size:14px;color:var(--color-text-secondary,#666);margin-bottom:24px;line-height:1.6}
+.user-recipe-card{background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.1));border-radius:14px;padding:16px;margin-bottom:12px;cursor:pointer;transition:border-color .15s}
+.user-recipe-card:hover{border-color:var(--color-border-secondary,rgba(0,0,0,.18))}
+.user-recipe-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.user-recipe-emoji{font-size:28px;flex-shrink:0}
+.user-recipe-info{flex:1;min-width:0}
+.user-recipe-name{font-size:15px;font-weight:500;color:var(--color-text-primary,#111);margin-bottom:3px}
+.user-recipe-meta{font-size:12px;color:var(--color-text-secondary,#666)}
+.user-recipe-actions{display:flex;gap:6px;flex-shrink:0}
+.recipe-action-btn{padding:6px 12px;border-radius:8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:var(--color-background-secondary,#f3f4f6);font-size:12px;cursor:pointer;color:var(--color-text-secondary,#666)}
+.recipe-action-btn:hover{background:var(--color-background-tertiary,#e5e7eb)}
+.recipe-action-btn.delete:hover{background:#fde8e8;color:#c0392b;border-color:#f5c6c6}
+.user-recipe-desc{font-size:13px;color:var(--color-text-secondary,#666);margin-top:8px;line-height:1.5}
+.user-recipe-ings{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.ing-pill{font-size:11px;padding:3px 9px;border-radius:8px;background:var(--color-background-secondary,#f3f4f6);color:var(--color-text-secondary,#666)}
+.cookbook-loading{text-align:center;padding:40px;color:var(--color-text-secondary,#666);font-size:14px}
+
+/* ═══ RECIPE BUILDER MODAL ═══ */
+.builder-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.builder-overlay.open{display:flex}
+.builder-modal{background:var(--color-background-primary,#fff);border-radius:20px;width:100%;max-width:540px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.25);margin:auto;position:relative}
+.builder-title{font-size:18px;font-weight:500;color:var(--color-text-primary,#111);margin-bottom:20px}
+.builder-field{margin-bottom:14px}
+.builder-label{font-size:12px;font-weight:500;color:var(--color-text-secondary,#666);display:block;margin-bottom:5px}
+.builder-input{width:100%;padding:10px 14px;border-radius:10px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:var(--color-background-secondary,#f3f4f6);font-size:14px;color:var(--color-text-primary,#111);outline:none;box-sizing:border-box}
+.builder-input:focus{border-color:var(--gm);background:var(--color-background-primary,#fff)}
+.builder-textarea{width:100%;padding:10px 14px;border-radius:10px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:var(--color-background-secondary,#f3f4f6);font-size:14px;color:var(--color-text-primary,#111);outline:none;box-sizing:border-box;resize:vertical;min-height:80px;font-family:inherit}
+.builder-textarea:focus{border-color:var(--gm);background:var(--color-background-primary,#fff)}
+.builder-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.emoji-picker{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.emoji-opt{font-size:22px;padding:4px 6px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;transition:border-color .1s}
+.emoji-opt.selected{border-color:var(--gm);background:var(--gl)}
+.ing-builder-list{list-style:none;margin-bottom:8px}
+.ing-builder-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.1))}
+.ing-builder-item:last-child{border-bottom:none}
+.ing-builder-text{flex:1;font-size:14px;color:var(--color-text-primary,#111)}
+.ing-remove-btn{background:none;border:none;cursor:pointer;font-size:16px;color:var(--color-text-secondary,#666);padding:0 4px}
+.ing-remove-btn:hover{color:#c0392b}
+.ing-add-row{display:flex;gap:8px}
+.step-builder-list{list-style:none;margin-bottom:8px;counter-reset:steps}
+.step-builder-item{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.1));counter-increment:steps}
+.step-builder-item:last-child{border-bottom:none}
+.step-num-badge{min-width:22px;height:22px;border-radius:50%;background:var(--gd);color:white;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.step-builder-text{flex:1;font-size:13px;color:var(--color-text-primary,#111);line-height:1.5}
+.builder-actions{display:flex;gap:10px;margin-top:20px}
+.builder-save-btn{flex:1;padding:13px;border-radius:12px;border:none;background:var(--gd);color:white;font-size:15px;font-weight:500;cursor:pointer}
+.builder-save-btn:hover{opacity:.9}
+.builder-save-btn:disabled{opacity:.5;cursor:not-allowed}
+.builder-cancel-btn{padding:13px 20px;border-radius:12px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:var(--color-background-secondary,#f3f4f6);font-size:15px;cursor:pointer;color:var(--color-text-primary,#111)}
+.builder-msg{font-size:13px;text-align:center;margin-top:10px;min-height:18px;color:#c0392b}
 /* CAT */
 .cat-hero{background:var(--gl);border-bottom:0.5px solid var(--gb);padding:32px 20px 28px;text-align:center}
 .cat-hero h1{font-size:clamp(20px,5vw,30px);font-weight:500;color:var(--gd);margin-bottom:8px}
@@ -370,15 +477,125 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 /* ═══ FEATURE 6: WAKE LOCK indicator ═══ */
 .wakelock-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 10px;border-radius:10px;background:var(--gl);color:var(--gm);margin-bottom:8px}
+
+/* ═══════════════════════════════════════════
+   AUTH MODAL
+═══════════════════════════════════════════ */
+.auth-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;align-items:center;justify-content:center;padding:20px}
+.auth-overlay.open{display:flex}
+.auth-modal{background:var(--color-background-primary,#fff);border-radius:20px;width:100%;max-width:380px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.auth-header{background:linear-gradient(135deg,var(--gd) 0%,var(--gm) 100%);padding:28px 24px 24px;text-align:center;color:white}
+.auth-header h2{font-size:22px;font-weight:500;margin-bottom:4px}
+.auth-header p{font-size:13px;opacity:.85}
+.auth-tabs{display:flex;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.1))}
+.auth-tab{flex:1;padding:14px;text-align:center;font-size:14px;font-weight:500;cursor:pointer;color:var(--color-text-secondary,#666);border:none;background:none;border-bottom:2px solid transparent;transition:all .15s}
+.auth-tab.active{color:var(--gm);border-bottom-color:var(--gm)}
+.auth-body{padding:20px}
+.auth-field{margin-bottom:14px}
+.auth-field label{display:block;font-size:12px;font-weight:500;color:var(--color-text-secondary,#666);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.auth-field input{width:100%;padding:11px 14px;border-radius:10px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:var(--color-background-secondary,#f3f4f6);font-size:14px;color:var(--color-text-primary,#111);outline:none;transition:border-color .15s}
+.auth-field input:focus{border-color:var(--gm);background:var(--color-background-primary,#fff)}
+.auth-submit{width:100%;padding:13px;border-radius:12px;border:none;background:var(--gd);color:white;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:12px;transition:opacity .15s}
+.auth-submit:hover{opacity:.9}
+.auth-submit:disabled{opacity:.6;cursor:not-allowed}
+.auth-divider{display:flex;align-items:center;gap:10px;margin-bottom:12px;color:var(--color-text-secondary,#666);font-size:12px}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:0.5px;background:var(--color-border-tertiary,rgba(0,0,0,.1))}
+.auth-social{width:100%;padding:11px;border-radius:12px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:var(--color-background-primary,#fff);font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;transition:background .15s;color:var(--color-text-primary,#111)}
+.auth-social:hover{background:var(--color-background-secondary,#f3f4f6)}
+.auth-error{font-size:12px;color:#c0392b;background:#fdf0ef;border-radius:8px;padding:8px 12px;margin-bottom:12px;display:none}
+.auth-error.show{display:block}
+.auth-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.2);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:18px;color:white;display:flex;align-items:center;justify-content:center}
+
+/* ═══════════════════════════════════════════
+   NAV USER AVATAR / AUTH BUTTON
+═══════════════════════════════════════════ */
+.nav-auth-btn{padding:6px 14px;border-radius:20px;border:0.5px solid var(--gb);background:var(--gl);color:var(--gd);font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
+.nav-auth-btn:hover{background:var(--gb)}
+.nav-user{display:none;align-items:center;gap:8px;cursor:pointer;position:relative}
+.nav-user.visible{display:flex}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:var(--gd);color:white;font-size:14px;font-weight:500;display:flex;align-items:center;justify-content:center}
+.user-dropdown{display:none;position:absolute;right:0;top:44px;background:var(--color-background-primary,#fff);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.15);border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.1));min-width:180px;z-index:400;overflow:hidden}
+.user-dropdown.open{display:block}
+.user-dropdown-item{padding:12px 16px;font-size:14px;cursor:pointer;color:var(--color-text-primary,#111);display:flex;align-items:center;gap:10px;transition:background .1s}
+.user-dropdown-item:hover{background:var(--color-background-secondary,#f3f4f6)}
+.user-dropdown-item.danger{color:#c0392b}
+.user-email{font-size:11px;color:var(--color-text-secondary,#666);padding:10px 16px 6px;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.1))}
+
+/* ═══════════════════════════════════════════
+   COOKBOOK SCREEN (SCREEN 6)
+═══════════════════════════════════════════ */
+.cb-hero{padding:24px 20px 16px;background:linear-gradient(135deg,var(--gd) 0%,var(--gm) 100%);color:white}
+.cb-hero h2{font-size:22px;font-weight:500;margin-bottom:4px}
+.cb-hero p{font-size:13px;opacity:.85}
+.cb-grid{padding:16px}
+.cb-add-btn{width:100%;padding:14px;border-radius:14px;border:1.5px dashed var(--gb);background:var(--gl);color:var(--gm);font-size:15px;font-weight:500;cursor:pointer;margin-bottom:16px;transition:background .15s}
+.cb-add-btn:hover{background:var(--gb)}
+.cb-card{background:var(--color-background-primary,#fff);border-radius:14px;border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.1));padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.cb-card-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.cb-emoji{font-size:36px;flex-shrink:0}
+.cb-card-info{flex:1}
+.cb-card-name{font-size:16px;font-weight:500;color:var(--color-text-primary,#111);margin-bottom:3px}
+.cb-card-desc{font-size:13px;color:var(--color-text-secondary,#666);line-height:1.4}
+.cb-card-meta{font-size:12px;color:var(--color-text-secondary,#666);margin-top:4px}
+.cb-card-actions{display:flex;gap:8px}
+.cb-action-btn{flex:1;padding:8px;border-radius:8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:var(--color-background-secondary,#f3f4f6);font-size:13px;cursor:pointer;color:var(--color-text-primary,#111);transition:background .12s}
+.cb-action-btn:hover{background:var(--gl)}
+.cb-action-btn.danger{color:#c0392b;border-color:rgba(192,57,43,.3)}
+.cb-action-btn.danger:hover{background:#fdf0ef}
+.cb-empty{text-align:center;padding:48px 20px}
+.cb-empty-icon{font-size:48px;margin-bottom:12px}
+.cb-empty-title{font-size:17px;font-weight:500;margin-bottom:6px;color:var(--color-text-primary,#111)}
+.cb-empty-sub{font-size:14px;color:var(--color-text-secondary,#666)}
+.cb-login-prompt{text-align:center;padding:48px 20px}
+
+/* ═══════════════════════════════════════════
+   RECIPE BUILDER MODAL
+═══════════════════════════════════════════ */
+.builder-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.builder-overlay.open{display:flex}
+.builder-modal{background:var(--color-background-primary,#fff);border-radius:20px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25);margin:auto}
+.builder-header{background:linear-gradient(135deg,var(--gd) 0%,var(--gm) 100%);padding:24px 20px;color:white;display:flex;align-items:center;justify-content:space-between;position:relative}
+.builder-header h2{font-size:20px;font-weight:500}
+.builder-body{padding:20px}
+.builder-field{margin-bottom:16px}
+.builder-field label{display:block;font-size:12px;font-weight:500;color:var(--color-text-secondary,#666);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.builder-field input,.builder-field textarea{width:100%;padding:11px 14px;border-radius:10px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:var(--color-background-secondary,#f3f4f6);font-size:14px;color:var(--color-text-primary,#111);outline:none;font-family:inherit;resize:vertical;transition:border-color .15s}
+.builder-field input:focus,.builder-field textarea:focus{border-color:var(--gm);background:var(--color-background-primary,#fff)}
+.builder-emoji-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.emoji-opt{font-size:24px;padding:6px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all .12s}
+.emoji-opt.selected{border-color:var(--gm);background:var(--gl)}
+.ing-builder-list{list-style:none;margin-bottom:8px}
+.ing-builder-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.06))}
+.ing-builder-item span{flex:1;font-size:13px}
+.ing-remove{background:none;border:none;font-size:16px;cursor:pointer;color:var(--color-text-secondary,#666);padding:0;line-height:1}
+.ing-add-row{display:flex;gap:8px}
+.ing-add-input{flex:1;padding:9px 12px;border-radius:8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:var(--color-background-secondary,#f3f4f6);font-size:13px;outline:none}
+.ing-add-btn{padding:9px 16px;border-radius:8px;background:var(--gd);color:white;border:none;font-size:13px;cursor:pointer}
+.step-builder-list{list-style:none;counter-reset:steps;margin-bottom:8px}
+.step-builder-item{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.06));counter-increment:steps}
+.step-builder-item::before{content:counter(steps);min-width:22px;height:22px;border-radius:50%;background:var(--gl);color:var(--gm);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.step-builder-item span{flex:1;font-size:13px;line-height:1.4}
+.builder-save{width:100%;padding:14px;border-radius:12px;border:none;background:var(--gd);color:white;font-size:15px;font-weight:500;cursor:pointer;margin-top:8px;transition:opacity .15s}
+.builder-save:hover{opacity:.9}
+.builder-save:disabled{opacity:.6;cursor:not-allowed}
 </style>
 </head>
 <body>
 
 <!-- SCREEN 1: CATEGORIES -->
 <div id="catScreen" class="screen active">
-  <nav class="nav">
+  <nav class="nav" style="position:relative">
     <span class="nav-logo">🌿 Garnish</span>
-    <span class="nav-right">632 recipes</span>
+    <div class="nav-auth">
+      <button class="nav-cookbook-btn" id="navCookbookBtn" style="display:none" onclick="openCookbook()">📖 My Cookbook</button>
+      <button class="nav-avatar" id="navAvatar" style="display:none" onclick="toggleUserMenu()"></button>
+      <button class="nav-login-btn" id="navLoginBtn" onclick="openAuth()">Sign in</button>
+    </div>
+    <div class="user-menu" id="userMenu">
+      <div class="user-menu-email" id="userMenuEmail"></div>
+      <button class="user-menu-item" onclick="openCookbook();toggleUserMenu()">📖 My Cookbook</button>
+      <button class="user-menu-item danger" onclick="signOut()">Sign out</button>
+    </div>
   </nav>
   <div class="cat-hero">
     <h1>What are you in the mood for?</h1>
@@ -391,6 +608,117 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     As an Amazon Associate we earn from qualifying purchases.<br/>
     <a href="/privacy.html">Privacy</a> &nbsp;·&nbsp; <a href="/terms.html">Terms</a></p>
   </footer>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="auth-overlay" id="authOverlay" onclick="closeAuthOnBg(event)">
+  <div class="auth-modal" style="position:relative">
+    <button class="auth-close" onclick="closeAuth()">✕</button>
+    <div class="auth-logo">🌿</div>
+    <div class="auth-title">Welcome to Garnish</div>
+    <div class="auth-subtitle">Sign in to save your personal cookbook</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Sign in</button>
+      <button class="auth-tab" id="tabSignup" onclick="switchAuthTab('signup')">Create account</button>
+    </div>
+    <!-- Google button -->
+    <button class="auth-google-btn" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+      Continue with Google
+    </button>
+    <div class="auth-divider"><span>or</span></div>
+    <!-- Email/password -->
+    <div class="auth-field">
+      <label class="auth-label">Email</label>
+      <input class="auth-input" id="authEmail" type="email" placeholder="you@example.com" autocomplete="email"/>
+    </div>
+    <div class="auth-field">
+      <label class="auth-label">Password</label>
+      <input class="auth-input" id="authPassword" type="password" placeholder="Min 6 characters" autocomplete="current-password"/>
+    </div>
+    <button class="auth-submit" id="authSubmitBtn" onclick="submitAuth()">Sign in</button>
+    <div class="auth-msg" id="authMsg"></div>
+  </div>
+</div>
+
+<!-- SCREEN 6: MY COOKBOOK -->
+<div id="cookbookScreen" class="screen">
+  <nav class="nav" style="position:relative">
+    <button class="nav-back" onclick="showCats()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Home
+    </button>
+    <button class="nav-avatar" id="cookbookAvatar" onclick="toggleUserMenu()"></button>
+    <div class="user-menu" id="cookbookUserMenu">
+      <div class="user-menu-email" id="cookbookUserEmail"></div>
+      <button class="user-menu-item danger" onclick="signOut()">Sign out</button>
+    </div>
+  </nav>
+  <div class="cookbook-wrap">
+    <div class="cookbook-header">
+      <div>
+        <div class="cookbook-title">📖 My Cookbook</div>
+        <div class="cookbook-count" id="cookbookCount">Your private recipes</div>
+      </div>
+      <button class="add-recipe-btn" onclick="openBuilder(null)">+ New recipe</button>
+    </div>
+    <div id="cookbookList"></div>
+  </div>
+</div>
+
+<!-- RECIPE BUILDER MODAL -->
+<div class="builder-overlay" id="builderOverlay" onclick="closeBuilderOnBg(event)">
+  <div class="builder-modal">
+    <div class="builder-title" id="builderTitle">New recipe</div>
+    <!-- Emoji picker -->
+    <div class="builder-field">
+      <label class="builder-label">Emoji</label>
+      <div class="emoji-picker" id="emojiPicker"></div>
+    </div>
+    <!-- Name + description -->
+    <div class="builder-field">
+      <label class="builder-label">Recipe name *</label>
+      <input class="builder-input" id="bName" placeholder="e.g. Mum's lemon chicken" maxlength="80"/>
+    </div>
+    <div class="builder-field">
+      <label class="builder-label">Description</label>
+      <input class="builder-input" id="bDesc" placeholder="One sentence about this recipe" maxlength="160"/>
+    </div>
+    <!-- Time + calories -->
+    <div class="builder-row">
+      <div class="builder-field">
+        <label class="builder-label">Prep time (e.g. 30 min)</label>
+        <input class="builder-input" id="bTime" placeholder="30 min" maxlength="20"/>
+      </div>
+      <div class="builder-field">
+        <label class="builder-label">Calories (number)</label>
+        <input class="builder-input" id="bCals" type="number" placeholder="450" min="0" max="5000"/>
+      </div>
+    </div>
+    <!-- Ingredients -->
+    <div class="builder-field">
+      <label class="builder-label">Ingredients</label>
+      <ul class="ing-builder-list" id="bIngList"></ul>
+      <div class="ing-add-row">
+        <input class="builder-input" id="bIngInput" placeholder="e.g. 2 cups chicken broth" maxlength="100" onkeydown="if(event.key==='Enter'){event.preventDefault();addBuilderIng()}"/>
+        <button class="excl-add" onclick="addBuilderIng()">+ Add</button>
+      </div>
+    </div>
+    <!-- Steps -->
+    <div class="builder-field">
+      <label class="builder-label">Steps</label>
+      <ol class="step-builder-list" id="bStepList"></ol>
+      <div class="ing-add-row">
+        <input class="builder-input" id="bStepInput" placeholder="e.g. Preheat oven to 400°F" maxlength="300" onkeydown="if(event.key==='Enter'){event.preventDefault();addBuilderStep()}"/>
+        <button class="excl-add" onclick="addBuilderStep()">+ Add</button>
+      </div>
+    </div>
+    <div class="builder-actions">
+      <button class="builder-cancel-btn" onclick="closeBuilder()">Cancel</button>
+      <button class="builder-save-btn" id="builderSaveBtn" onclick="saveUserRecipe()">Save recipe</button>
+    </div>
+    <div class="builder-msg" id="builderMsg"></div>
+  </div>
 </div>
 
 <!-- DINNER SPINNER MODAL -->
@@ -1648,6 +1976,365 @@ function updateTimerDisp(){const m=Math.floor(timerSecs/60),s=timerSecs%60;docum
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 // Re-acquire wake lock after visibility change (OS can release it)
 document.addEventListener('visibilitychange',()=>{if(chefViewOn&&document.visibilityState==='visible')requestWakeLock();});
+
+// ══════════════════════════════════════════════════════════
+// SUPABASE SETUP
+// ══════════════════════════════════════════════════════════
+const SUPA_URL = 'https://rfoossmfsztebsspzezh.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmb29zc21mc3p0ZWJzc3B6ZXpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4OTY5NDQsImV4cCI6MjA5MjQ3Mjk0NH0.yJuoFDXo8A6zKNgZfR4T-0hVNNrjcuJ2gvZqL-Tm0Fg';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ══════════════════════════════════════════════════════════
+// AUTH STATE
+// ══════════════════════════════════════════════════════════
+let currentUser = null;
+let authMode = 'login'; // 'login' | 'signup'
+let editingRecipeId = null;
+let builderIngredients = [];
+let builderSteps = [];
+let selectedEmoji = '🍽️';
+
+const EMOJIS = ['🍽️','🥗','🍗','🥩','🐟','🥦','🥕','🍜','🥣','🌮','🫙','🥚','🍲','🥬','🫑','🍳','🥑','🌿','🍅','🫘','🌱','🥜'];
+
+// Listen for auth state changes (login, logout, page refresh)
+supa.auth.onAuthStateChange((event, session) => {
+  currentUser = session?.user || null;
+  updateNavAuth();
+});
+
+// ══════════════════════════════════════════════════════════
+// NAV AUTH UI
+// ══════════════════════════════════════════════════════════
+function updateNavAuth() {
+  const loginBtn  = document.getElementById('navLoginBtn');
+  const avatar    = document.getElementById('navAvatar');
+  const cbBtn     = document.getElementById('navCookbookBtn');
+
+  if (currentUser) {
+    // Logged in
+    loginBtn.style.display  = 'none';
+    avatar.style.display    = 'flex';
+    cbBtn.style.display     = 'flex';
+    // Show initials in avatar
+    const initials = (currentUser.email || 'U').substring(0, 1).toUpperCase();
+    avatar.textContent = initials;
+    document.getElementById('userMenuEmail').textContent = currentUser.email;
+  } else {
+    // Logged out
+    loginBtn.style.display  = 'flex';
+    avatar.style.display    = 'none';
+    cbBtn.style.display     = 'none';
+  }
+}
+
+function toggleUserMenu() {
+  document.getElementById('userMenu').classList.toggle('open');
+  // Close on next outside click
+  setTimeout(() => {
+    document.addEventListener('click', closeUserMenuOutside, { once: true });
+  }, 0);
+}
+function closeUserMenuOutside(e) {
+  const menu = document.getElementById('userMenu');
+  if (!menu.contains(e.target)) menu.classList.remove('open');
+}
+
+// ══════════════════════════════════════════════════════════
+// AUTH MODAL
+// ══════════════════════════════════════════════════════════
+function openAuth() {
+  document.getElementById('authOverlay').classList.add('open');
+  document.getElementById('authMsg').textContent = '';
+  document.getElementById('authEmail').value = '';
+  document.getElementById('authPassword').value = '';
+  switchAuthTab('login');
+}
+function closeAuth() {
+  document.getElementById('authOverlay').classList.remove('open');
+}
+function closeAuthOnBg(e) {
+  if (e.target === document.getElementById('authOverlay')) closeAuth();
+}
+function switchAuthTab(mode) {
+  authMode = mode;
+  document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+  document.getElementById('tabSignup').classList.toggle('active', mode === 'signup');
+  document.getElementById('authSubmitBtn').textContent = mode === 'login' ? 'Sign in' : 'Create account';
+  document.getElementById('authMsg').textContent = '';
+  document.getElementById('authPassword').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+}
+
+async function submitAuth() {
+  const email    = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const btn      = document.getElementById('authSubmitBtn');
+  const msg      = document.getElementById('authMsg');
+
+  if (!email || !password) { showAuthMsg('Please fill in both fields.', 'error'); return; }
+  if (password.length < 6) { showAuthMsg('Password must be at least 6 characters.', 'error'); return; }
+
+  btn.disabled = true;
+  btn.textContent = authMode === 'login' ? 'Signing in…' : 'Creating account…';
+  msg.textContent = '';
+
+  try {
+    let result;
+    if (authMode === 'login') {
+      result = await supa.auth.signInWithPassword({ email, password });
+    } else {
+      result = await supa.auth.signUp({ email, password });
+    }
+
+    if (result.error) {
+      showAuthMsg(result.error.message, 'error');
+    } else if (authMode === 'signup' && !result.data?.session) {
+      showAuthMsg('Check your email to confirm your account, then sign in.', 'success');
+    } else {
+      closeAuth();
+    }
+  } catch(e) {
+    showAuthMsg('Something went wrong. Please try again.', 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = authMode === 'login' ? 'Sign in' : 'Create account';
+}
+
+async function signInWithGoogle() {
+  const { error } = await supa.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+  if (error) showAuthMsg(error.message, 'error');
+}
+
+async function signOut() {
+  document.getElementById('userMenu').classList.remove('open');
+  await supa.auth.signOut();
+  showCats();
+}
+
+function showAuthMsg(text, type) {
+  const el = document.getElementById('authMsg');
+  el.textContent = text;
+  el.className = 'auth-msg ' + type;
+}
+
+// ══════════════════════════════════════════════════════════
+// COOKBOOK SCREEN
+// ══════════════════════════════════════════════════════════
+function openCookbook() {
+  if (!currentUser) { openAuth(); return; }
+  // Update cookbook nav avatar
+  const initials = currentUser.email.substring(0,1).toUpperCase();
+  document.getElementById('cookbookAvatar').textContent = initials;
+  document.getElementById('cookbookUserEmail').textContent = currentUser.email;
+  show('cookbookScreen');
+  loadUserRecipes();
+}
+
+async function loadUserRecipes() {
+  const list = document.getElementById('cookbookList');
+  list.innerHTML = '<div class="cookbook-loading">Loading your recipes…</div>';
+
+  const { data, error } = await supa
+    .from('recipes')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    list.innerHTML = '<div class="cookbook-loading">Error loading recipes. Please try again.</div>';
+    return;
+  }
+
+  document.getElementById('cookbookCount').textContent =
+    data.length === 0 ? 'No recipes yet' :
+    data.length === 1 ? '1 private recipe' :
+    `${data.length} private recipes`;
+
+  if (data.length === 0) {
+    list.innerHTML = `
+      <div class="cookbook-empty">
+        <div class="cookbook-empty-icon">📖</div>
+        <div class="cookbook-empty-title">Your cookbook is empty</div>
+        <div class="cookbook-empty-sub">Save your family recipes, personal twists, or meal ideas here. Only you can see them.</div>
+        <button class="add-recipe-btn" onclick="openBuilder(null)">+ Add your first recipe</button>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = data.map(r => `
+    <div class="user-recipe-card">
+      <div class="user-recipe-top">
+        <span class="user-recipe-emoji">${r.emoji || '🍽️'}</span>
+        <div class="user-recipe-info">
+          <div class="user-recipe-name">${escHtml(r.name)}</div>
+          <div class="user-recipe-meta">${r.prep_time ? r.prep_time + ' · ' : ''}${r.calories ? r.calories + ' cal' : 'Private recipe'}</div>
+        </div>
+        <div class="user-recipe-actions">
+          <button class="recipe-action-btn" onclick="event.stopPropagation();openBuilder('${r.id}')">Edit</button>
+          <button class="recipe-action-btn delete" onclick="event.stopPropagation();deleteUserRecipe('${r.id}')">Delete</button>
+        </div>
+      </div>
+      ${r.description ? `<div class="user-recipe-desc">${escHtml(r.description)}</div>` : ''}
+      ${r.ingredients?.length ? `<div class="user-recipe-ings">${r.ingredients.slice(0,6).map(i=>`<span class="ing-pill">${escHtml(i)}</span>`).join('')}${r.ingredients.length>6?`<span class="ing-pill">+${r.ingredients.length-6} more</span>`:''}</div>` : ''}
+    </div>`).join('');
+}
+
+async function deleteUserRecipe(id) {
+  if (!confirm('Delete this recipe? This cannot be undone.')) return;
+  await supa.from('recipes').delete().eq('id', id);
+  loadUserRecipes();
+}
+
+// ══════════════════════════════════════════════════════════
+// RECIPE BUILDER
+// ══════════════════════════════════════════════════════════
+async function openBuilder(recipeId) {
+  editingRecipeId = recipeId;
+  builderIngredients = [];
+  builderSteps = [];
+  selectedEmoji = '🍽️';
+
+  // Build emoji picker
+  document.getElementById('emojiPicker').innerHTML = EMOJIS.map(e =>
+    `<span class="emoji-opt${e===selectedEmoji?' selected':''}" onclick="selectEmoji('${e}')">${e}</span>`
+  ).join('');
+
+  if (recipeId) {
+    // Load existing recipe for editing
+    document.getElementById('builderTitle').textContent = 'Edit recipe';
+    document.getElementById('builderSaveBtn').textContent = 'Save changes';
+    const { data } = await supa.from('recipes').select('*').eq('id', recipeId).single();
+    if (data) {
+      document.getElementById('bName').value  = data.name || '';
+      document.getElementById('bDesc').value  = data.description || '';
+      document.getElementById('bTime').value  = data.prep_time || '';
+      document.getElementById('bCals').value  = data.calories || '';
+      selectedEmoji = data.emoji || '🍽️';
+      builderIngredients = data.ingredients || [];
+      builderSteps = data.steps || [];
+      // Update emoji selection highlight
+      document.querySelectorAll('.emoji-opt').forEach(el => {
+        el.classList.toggle('selected', el.textContent === selectedEmoji);
+      });
+    }
+  } else {
+    document.getElementById('builderTitle').textContent = 'New recipe';
+    document.getElementById('builderSaveBtn').textContent = 'Save recipe';
+    document.getElementById('bName').value  = '';
+    document.getElementById('bDesc').value  = '';
+    document.getElementById('bTime').value  = '';
+    document.getElementById('bCals').value  = '';
+  }
+
+  renderBuilderLists();
+  document.getElementById('builderMsg').textContent = '';
+  document.getElementById('builderOverlay').classList.add('open');
+}
+
+function closeBuilder() {
+  document.getElementById('builderOverlay').classList.remove('open');
+}
+function closeBuilderOnBg(e) {
+  if (e.target === document.getElementById('builderOverlay')) closeBuilder();
+}
+
+function selectEmoji(e) {
+  selectedEmoji = e;
+  document.querySelectorAll('.emoji-opt').forEach(el => {
+    el.classList.toggle('selected', el.textContent === e);
+  });
+}
+
+function addBuilderIng() {
+  const inp = document.getElementById('bIngInput');
+  const val = inp.value.trim();
+  if (!val) return;
+  builderIngredients.push(val);
+  inp.value = '';
+  renderBuilderLists();
+  inp.focus();
+}
+
+function removeBuilderIng(idx) {
+  builderIngredients.splice(idx, 1);
+  renderBuilderLists();
+}
+
+function addBuilderStep() {
+  const inp = document.getElementById('bStepInput');
+  const val = inp.value.trim();
+  if (!val) return;
+  builderSteps.push(val);
+  inp.value = '';
+  renderBuilderLists();
+  inp.focus();
+}
+
+function removeBuilderStep(idx) {
+  builderSteps.splice(idx, 1);
+  renderBuilderLists();
+}
+
+function renderBuilderLists() {
+  document.getElementById('bIngList').innerHTML = builderIngredients.map((ing, i) => `
+    <li class="ing-builder-item">
+      <span class="ing-builder-text">${escHtml(ing)}</span>
+      <button class="ing-remove-btn" onclick="removeBuilderIng(${i})">×</button>
+    </li>`).join('') || '<li style="padding:6px 0;font-size:13px;color:var(--color-text-secondary,#666)">No ingredients added yet</li>';
+
+  document.getElementById('bStepList').innerHTML = builderSteps.map((step, i) => `
+    <li class="step-builder-item">
+      <span class="step-num-badge">${i+1}</span>
+      <span class="step-builder-text">${escHtml(step)}</span>
+      <button class="ing-remove-btn" onclick="removeBuilderStep(${i})">×</button>
+    </li>`).join('') || '<li style="padding:6px 0;font-size:13px;color:var(--color-text-secondary,#666)">No steps added yet</li>';
+}
+
+async function saveUserRecipe() {
+  const name = document.getElementById('bName').value.trim();
+  if (!name) { document.getElementById('builderMsg').textContent = 'Recipe name is required.'; return; }
+  if (!currentUser) { closeBuilder(); openAuth(); return; }
+
+  const btn = document.getElementById('builderSaveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  const payload = {
+    user_id:     currentUser.id,
+    name,
+    description: document.getElementById('bDesc').value.trim() || null,
+    prep_time:   document.getElementById('bTime').value.trim() || null,
+    calories:    parseInt(document.getElementById('bCals').value) || null,
+    emoji:       selectedEmoji,
+    ingredients: builderIngredients,
+    steps:       builderSteps,
+    updated_at:  new Date().toISOString(),
+  };
+
+  let error;
+  if (editingRecipeId) {
+    ({ error } = await supa.from('recipes').update(payload).eq('id', editingRecipeId));
+  } else {
+    ({ error } = await supa.from('recipes').insert(payload));
+  }
+
+  btn.disabled = false;
+  btn.textContent = editingRecipeId ? 'Save changes' : 'Save recipe';
+
+  if (error) {
+    document.getElementById('builderMsg').textContent = 'Error saving recipe. Please try again.';
+  } else {
+    closeBuilder();
+    loadUserRecipes();
+  }
+}
+
+// Utility: escape HTML to prevent XSS in user content
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 // ══════════════════════════════════════════════════════════
 // INIT

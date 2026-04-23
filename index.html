@@ -255,9 +255,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .cookbook-empty-icon{font-size:52px;margin-bottom:16px}
 .cookbook-empty-title{font-size:18px;font-weight:500;color:var(--color-text-primary,#111);margin-bottom:8px}
 .cookbook-empty-sub{font-size:14px;color:var(--color-text-secondary,#666);margin-bottom:24px;line-height:1.6}
-.user-recipe-card{background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.1));border-radius:14px;padding:16px;margin-bottom:12px;cursor:pointer;transition:border-color .15s}
+.user-recipe-card{background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.1));border-radius:14px;overflow:hidden;margin-bottom:12px;cursor:pointer;transition:border-color .15s}
 .user-recipe-card:hover{border-color:var(--color-border-secondary,rgba(0,0,0,.18))}
-.user-recipe-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.user-recipe-img{width:100%;height:160px;object-fit:cover;display:block}
+.user-recipe-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:12px 16px 0}
 .user-recipe-emoji{font-size:28px;flex-shrink:0}
 .user-recipe-info{flex:1;min-width:0}
 .user-recipe-name{font-size:15px;font-weight:500;color:var(--color-text-primary,#111);margin-bottom:3px}
@@ -266,8 +267,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .recipe-action-btn{padding:6px 12px;border-radius:8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:var(--color-background-secondary,#f3f4f6);font-size:12px;cursor:pointer;color:var(--color-text-secondary,#666)}
 .recipe-action-btn:hover{background:var(--color-background-tertiary,#e5e7eb)}
 .recipe-action-btn.delete:hover{background:#fde8e8;color:#c0392b;border-color:#f5c6c6}
-.user-recipe-desc{font-size:13px;color:var(--color-text-secondary,#666);margin-top:8px;line-height:1.5}
-.user-recipe-ings{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.user-recipe-desc{font-size:13px;color:var(--color-text-secondary,#666);margin-top:8px;line-height:1.5;padding:0 16px}
+.user-recipe-ings{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;padding:0 16px 14px}
 .ing-pill{font-size:11px;padding:3px 9px;border-radius:8px;background:var(--color-background-secondary,#f3f4f6);color:var(--color-text-secondary,#666)}
 .cookbook-loading{text-align:center;padding:40px;color:var(--color-text-secondary,#666);font-size:14px}
 
@@ -302,6 +303,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .builder-save-btn{flex:1;padding:13px;border-radius:12px;border:none;background:var(--gd);color:white;font-size:15px;font-weight:500;cursor:pointer}
 .builder-save-btn:hover{opacity:.9}
 .builder-save-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── Photo upload area ── */
+.photo-upload-area{border:1.5px dashed var(--gb);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .15s;min-height:130px;display:flex;align-items:center;justify-content:center;background:var(--gl);position:relative}
+.photo-upload-area:hover{border-color:var(--gm);background:#e0edcc}
+.photo-upload-area:active{opacity:.85}
+.photo-upload-prompt{text-align:center;padding:24px 16px}
+.photo-upload-icon{font-size:32px;margin-bottom:6px}
+.photo-upload-label{font-size:14px;font-weight:500;color:var(--gm);margin-bottom:2px}
+.photo-upload-sub{font-size:12px;color:var(--color-text-secondary,#666)}
+.photo-preview-img{width:100%;height:200px;object-fit:cover;display:block;border-radius:10px}
+.photo-upload-progress{margin-top:8px;height:4px;background:var(--color-background-secondary,#f3f4f6);border-radius:2px;overflow:hidden}
+.photo-upload-bar{height:100%;background:var(--gm);border-radius:2px;width:0%;transition:width .2s}
+.photo-upload-status{font-size:12px;color:var(--color-text-secondary,#666);margin-top:4px;min-height:16px}
+.photo-remove-btn{margin-top:8px;padding:6px 14px;border-radius:8px;border:0.5px solid rgba(192,57,43,.3);background:none;color:#c0392b;font-size:12px;cursor:pointer;transition:background .12s}
+.photo-remove-btn:hover{background:#fdf0ef}
 .builder-cancel-btn{padding:13px 20px;border-radius:12px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:var(--color-background-secondary,#f3f4f6);font-size:15px;cursor:pointer;color:var(--color-text-primary,#111)}
 .builder-msg{font-size:13px;text-align:center;margin-top:10px;min-height:18px;color:#c0392b}
 /* CAT */
@@ -694,6 +710,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <label class="builder-label">Calories (number)</label>
         <input class="builder-input" id="bCals" type="number" placeholder="450" min="0" max="5000"/>
       </div>
+    </div>
+    <!-- Photo upload (optional) -->
+    <div class="builder-field">
+      <label class="builder-label">Photo <span style="font-weight:400;text-transform:none;letter-spacing:0;opacity:.7">(optional — leave blank for auto photo)</span></label>
+      <!-- Hidden file input — accepts images, opens camera roll on mobile -->
+      <input type="file" id="bPhotoFile" accept="image/*" style="display:none" onchange="handlePhotoUpload(this)"/>
+      <!-- Hidden URL field — stores the final Supabase URL after upload -->
+      <input type="hidden" id="bPhoto"/>
+      <!-- Upload area — tap to pick from camera roll -->
+      <div id="photoUploadArea" class="photo-upload-area" onclick="document.getElementById('bPhotoFile').click()">
+        <div id="photoUploadPrompt" class="photo-upload-prompt">
+          <div class="photo-upload-icon">📷</div>
+          <div class="photo-upload-label">Tap to add a photo</div>
+          <div class="photo-upload-sub">From your camera roll or files</div>
+        </div>
+        <img id="bPhotoImg" src="" alt="Preview" class="photo-preview-img" style="display:none"/>
+      </div>
+      <!-- Progress bar shown during upload -->
+      <div id="photoUploadProgress" class="photo-upload-progress" style="display:none">
+        <div class="photo-upload-bar" id="photoUploadBar"></div>
+      </div>
+      <div id="photoUploadStatus" class="photo-upload-status"></div>
+      <!-- Remove photo button -->
+      <button id="photoRemoveBtn" class="photo-remove-btn" style="display:none" onclick="removePhoto()">✕ Remove photo</button>
     </div>
     <!-- Ingredients -->
     <div class="builder-field">
@@ -1575,6 +1615,27 @@ let spinResult=null;
 function afLink(ing){return`https://www.amazon.com/s?k=${encodeURIComponent(ing+' organic')}&i=amazonfresh&tag=${AF}`;}
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
 
+// ── RECIPE PHOTO — dynamic Unsplash Source matching ──────────────────
+// Strips non-food words from the recipe name and builds a search URL
+// so every recipe gets a visually relevant food photo automatically.
+const STOP_WORDS=new Set(['with','and','in','on','the','a','an','of','for','to','no','my','style','lighter','version','quick','easy','simple','batch','big','classic','loaded','whole','fresh','baked','grilled','roasted','pan','sheet','one','slow','fast','instant','homemade','make','ahead','meal','prep','5','10','15','20','30','45','min','minute','minutes']);
+
+function recipePhoto(recipe){
+  // If it's a user recipe with a custom image URL, use that directly
+  if(recipe.image_url) return recipe.image_url;
+
+  // Build keyword string from recipe name
+  const words = recipe.name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g,'')
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !STOP_WORDS.has(w));
+
+  // Always append 'food' so Unsplash knows the context
+  const keywords = [...words.slice(0,4), 'food'].join(',');
+  return `https://source.unsplash.com/600x400/?${encodeURIComponent(keywords)}`;
+}
+
 // Load persisted data from localStorage
 function loadStorage(){
   try{tips=JSON.parse(localStorage.getItem('gr_tips')||'{}');votedTips=JSON.parse(localStorage.getItem('gr_voted')||'{}');}catch(e){}
@@ -1706,7 +1767,7 @@ function renderRecipeGrid(list){
   grid.innerHTML=list.map(r=>{
     const i=R.indexOf(r);
     return`<div class="r-card" onclick="openRecipe(${i})">
-      <img class="r-img" src="${r.photo}" alt="${r.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+      <img class="r-img" src="${recipePhoto(r)}" alt="${r.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
       <div class="r-ph" style="display:none">${r.emoji}</div>
       <div class="r-body">
         <div class="r-name">${r.name}</div>
@@ -1848,7 +1909,7 @@ function openRecipe(idx){
   activeRecipe=R[idx];const r=activeRecipe;
   const cat=CATS.find(c=>c.id===activeCat);
   document.getElementById('detBackLbl').textContent=cat?cat.label:'Recipes';
-  document.getElementById('detHero').src=r.photo;document.getElementById('detHero').alt=r.name;
+  document.getElementById('detHero').src=recipePhoto(r);document.getElementById('detHero').alt=r.name;
   document.getElementById('detTitle').textContent=r.name;
   const tag=document.getElementById('detTag');tag.textContent=r.tag;tag.className='tag '+(TC[r.tag]||'tag-blue');
   document.getElementById('detMeta').textContent=r.time+' · '+r.cals+' cal';
@@ -1910,7 +1971,7 @@ function startCooking(){
   document.getElementById('chefBar').classList.remove('active');
   document.getElementById('stepCard').classList.remove('chef-mode');
   releaseWakeLock();
-  document.getElementById('ckHero').src=r.photo;document.getElementById('ckHero').alt=r.name;
+  document.getElementById('ckHero').src=recipePhoto(r);document.getElementById('ckHero').alt=r.name;
   document.getElementById('ckTitle').textContent=r.name;
   document.getElementById('ckSub').textContent=r.time+' · '+r.cals+' cal · '+r.tag;
   renderStep();document.title=r.name+' — Cooking Mode | Garnish';
@@ -2165,6 +2226,7 @@ async function loadUserRecipes() {
 
   list.innerHTML = data.map(r => `
     <div class="user-recipe-card">
+      <img class="user-recipe-img" src="${recipePhoto(r)}" alt="${escHtml(r.name)}" loading="lazy" onerror="this.style.display='none'"/>
       <div class="user-recipe-top">
         <span class="user-recipe-emoji">${r.emoji || '🍽️'}</span>
         <div class="user-recipe-info">
@@ -2211,9 +2273,12 @@ async function openBuilder(recipeId) {
       document.getElementById('bDesc').value  = data.description || '';
       document.getElementById('bTime').value  = data.prep_time || '';
       document.getElementById('bCals').value  = data.calories || '';
+      document.getElementById('bPhoto').value = data.image_url || '';
       selectedEmoji = data.emoji || '🍽️';
       builderIngredients = data.ingredients || [];
       builderSteps = data.steps || [];
+      // Show photo preview if URL exists
+      updatePhotoPreview(data.image_url || '');
       // Update emoji selection highlight
       document.querySelectorAll('.emoji-opt').forEach(el => {
         el.classList.toggle('selected', el.textContent === selectedEmoji);
@@ -2226,6 +2291,8 @@ async function openBuilder(recipeId) {
     document.getElementById('bDesc').value  = '';
     document.getElementById('bTime').value  = '';
     document.getElementById('bCals').value  = '';
+    document.getElementById('bPhoto').value = '';
+    updatePhotoPreview('');
   }
 
   renderBuilderLists();
@@ -2238,6 +2305,116 @@ function closeBuilder() {
 }
 function closeBuilderOnBg(e) {
   if (e.target === document.getElementById('builderOverlay')) closeBuilder();
+}
+
+// ── PHOTO UPLOAD ─────────────────────────────────────────────────────
+const SUPA_STORAGE = 'https://rfoossmfsztebsspzezh.supabase.co/storage/v1/object/public/recipe-photos/';
+
+// Called when the builder opens — show existing photo or blank state
+function updatePhotoPreview(url) {
+  const img        = document.getElementById('bPhotoImg');
+  const prompt     = document.getElementById('photoUploadPrompt');
+  const removeBtn  = document.getElementById('photoRemoveBtn');
+  const hidden     = document.getElementById('bPhoto');
+  if (url) {
+    img.src = url;
+    img.style.display = 'block';
+    prompt.style.display = 'none';
+    removeBtn.style.display = 'block';
+    hidden.value = url;
+  } else {
+    img.src = '';
+    img.style.display = 'none';
+    prompt.style.display = 'block';
+    removeBtn.style.display = 'none';
+    hidden.value = '';
+  }
+}
+
+// Called when user picks a file from their camera roll / files
+async function handlePhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  // Client-side validation
+  if (!file.type.startsWith('image/')) {
+    setPhotoStatus('Please choose an image file.', 'error');
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    setPhotoStatus('Photo must be under 10MB.', 'error');
+    return;
+  }
+
+  // Show local preview immediately so it feels instant
+  const localUrl = URL.createObjectURL(file);
+  updatePhotoPreview(localUrl);
+  setPhotoStatus('Uploading…', '');
+  showUploadProgress(0);
+
+  // Build a unique path: userId/timestamp-filename
+  const ext      = file.name.split('.').pop().toLowerCase() || 'jpg';
+  const safeName = `${Date.now()}.${ext}`;
+  const path     = `${currentUser.id}/${safeName}`;
+
+  try {
+    // Simulate progress (Supabase JS doesn't expose upload progress natively)
+    let fakeProgress = 0;
+    const progressInterval = setInterval(() => {
+      fakeProgress = Math.min(fakeProgress + 15, 85);
+      showUploadProgress(fakeProgress);
+    }, 150);
+
+    const { error } = await supa.storage
+      .from('recipe-photos')
+      .upload(path, file, { upsert: true, contentType: file.type });
+
+    clearInterval(progressInterval);
+
+    if (error) {
+      showUploadProgress(0);
+      updatePhotoPreview('');
+      setPhotoStatus('Upload failed — ' + error.message, 'error');
+      return;
+    }
+
+    // Build the public URL
+    const publicUrl = SUPA_STORAGE + path;
+    showUploadProgress(100);
+    setTimeout(() => hideUploadProgress(), 600);
+
+    // Save the real Supabase URL (replaces local blob URL)
+    updatePhotoPreview(publicUrl);
+    setPhotoStatus('Photo saved ✓', 'success');
+    setTimeout(() => setPhotoStatus('', ''), 2500);
+
+  } catch(e) {
+    updatePhotoPreview('');
+    setPhotoStatus('Upload failed — please try again.', 'error');
+  }
+
+  // Reset the file input so the same file can be re-selected
+  input.value = '';
+}
+
+function removePhoto() {
+  updatePhotoPreview('');
+  setPhotoStatus('', '');
+  document.getElementById('photoUploadStatus').textContent = '';
+}
+
+function showUploadProgress(pct) {
+  document.getElementById('photoUploadProgress').style.display = 'block';
+  document.getElementById('photoUploadBar').style.width = pct + '%';
+}
+function hideUploadProgress() {
+  document.getElementById('photoUploadProgress').style.display = 'none';
+  document.getElementById('photoUploadBar').style.width = '0%';
+}
+function setPhotoStatus(msg, type) {
+  const el = document.getElementById('photoUploadStatus');
+  el.textContent = msg;
+  el.style.color = type === 'error' ? '#c0392b' : type === 'success' ? 'var(--gm)' : 'var(--color-text-secondary,#666)';
 }
 
 function selectEmoji(e) {
@@ -2310,6 +2487,7 @@ async function saveUserRecipe() {
     emoji:       selectedEmoji,
     ingredients: builderIngredients,
     steps:       builderSteps,
+    image_url:   document.getElementById('bPhoto').value.trim() || null,
     updated_at:  new Date().toISOString(),
   };
 

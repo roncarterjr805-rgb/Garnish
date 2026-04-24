@@ -2449,18 +2449,18 @@ async function handlePhotoUpload(input) {
 
     if (error) {
       showUploadProgress(0);
+      updatePhotoPreview('');
       setPhotoStatus('Upload failed — ' + error.message, 'error');
       return;
     }
 
-    // Get the public URL via the SDK (works with both public and private buckets)
+    // Get the public URL via the SDK
     const { data: { publicUrl } } = supa.storage.from('recipe-photos').getPublicUrl(path);
     showUploadProgress(100);
     setTimeout(() => hideUploadProgress(), 600);
 
-    // Store the real URL in the hidden field but keep the local blob preview
-    // (blob preview is guaranteed to display; remote URL saved for the record)
-    document.getElementById('bPhoto').value = publicUrl;
+    // Update preview with the real Supabase URL and store it
+    updatePhotoPreview(publicUrl);
     setPhotoStatus('Photo ready ✓', 'success');
     setTimeout(() => setPhotoStatus('', ''), 2500);
 

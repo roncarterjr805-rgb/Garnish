@@ -2229,6 +2229,7 @@ async function loadUserRecipes() {
   const { data, error } = await supa
     .from('recipes')
     .select('*')
+    .eq('user_id', currentUser.id)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -2255,7 +2256,7 @@ async function loadUserRecipes() {
   userRecipes = data;
   list.innerHTML = data.map((r,idx) => `
     <div class="user-recipe-card" onclick="openUserRecipe(${idx})">
-      <img class="user-recipe-img" src="${recipePhoto(r)}" alt="${escHtml(r.name)}" loading="lazy" onerror="this.style.display='none'"/>
+      <img class="user-recipe-img" src="${recipePhoto(r)}" alt="${escHtml(r.name)}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80'"/>
       <div class="user-recipe-top">
         <div class="user-recipe-info">
           <div class="user-recipe-name">${escHtml(r.name)}</div>

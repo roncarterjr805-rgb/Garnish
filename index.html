@@ -2596,10 +2596,10 @@ async function handlePhotoUpload(event){
     const ext=file.name.split('.').pop().toLowerCase()||'jpg';
     const path=`recipes/${Date.now()}.${ext}`;
     bar.style.width='50%';
-    const {error:upErr}=await supa.storage.from('recipe-photos').upload(path,file,{upsert:true,contentType:file.type});
+    const {error:upErr}=await supa.storage.from('admin-photos').upload(path,file,{upsert:true,contentType:file.type});
     if(upErr)throw upErr;
     bar.style.width='85%';
-    const {data:{publicUrl}}=supa.storage.from('recipe-photos').getPublicUrl(path);
+    const {data:{publicUrl}}=supa.storage.from('admin-photos').getPublicUrl(path);
     bar.style.width='100%';
     document.getElementById('photoEdInput').value=publicUrl;
     document.getElementById('photoEdPreview').src=publicUrl;

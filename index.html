@@ -1767,8 +1767,7 @@ function renderRecipeGrid(list){
   grid.innerHTML=list.map(r=>{
     const i=R.indexOf(r);
     return`<div class="r-card" onclick="openRecipe(${i})">
-      <img class="r-img" src="${recipePhoto(r)}" alt="${r.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-      <div class="r-ph" style="display:none">${r.emoji}</div>
+      <img class="r-img" src="${recipePhoto(r)}" alt="${r.name}" loading="lazy"/>
       <div class="r-body">
         <div class="r-name">${r.name}</div>
         <div class="r-meta">${r.time} · ${r.cals} cal</div>

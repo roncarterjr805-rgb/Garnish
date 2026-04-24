@@ -1629,7 +1629,8 @@ const R=[
 // ══════════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════════
-let activeCat=null,activeRecipe=null,stepIdx=0,timerInterval=null,timerSecs=0,timerRunning=false;
+let activeCat=null,activeRecipe=null,stepIdx=0,timerInterval=null,timerSecs=0,timerRunning=false,fromCookbook=false;
+let userRecipes=[];
 let currentScale=2,baseScale=2;
 let exclusions=[];
 let tips={};        // { recipeIdx: [{text, votes, id}] }
@@ -1950,7 +1951,10 @@ function openRecipe(idx){
   document.title=`${r.name} — Garnish`;
   show('detailScreen');
 }
-function backToList(){if(activeCat)openCat(activeCat);else showCats();}
+function backToList(){
+  if(fromCookbook){fromCookbook=false;show('cookbookScreen');return;}
+  if(activeCat)openCat(activeCat);else showCats();
+}
 
 // Amazon Fresh shop all
 function shopAll(){
@@ -2248,14 +2252,14 @@ async function loadUserRecipes() {
     return;
   }
 
-  list.innerHTML = data.map(r => `
-    <div class="user-recipe-card">
+  userRecipes = data;
+  list.innerHTML = data.map((r,idx) => `
+    <div class="user-recipe-card" onclick="openUserRecipe(${idx})">
       <img class="user-recipe-img" src="${recipePhoto(r)}" alt="${escHtml(r.name)}" loading="lazy" onerror="this.style.display='none'"/>
       <div class="user-recipe-top">
-        <span class="user-recipe-emoji">${r.emoji || '🍽️'}</span>
         <div class="user-recipe-info">
           <div class="user-recipe-name">${escHtml(r.name)}</div>
-          <div class="user-recipe-meta">${r.prep_time ? r.prep_time + ' · ' : ''}${r.calories ? r.calories + ' cal' : 'Private recipe'}</div>
+          <div class="user-recipe-meta">${r.prep_time ? r.prep_time + ' · ' : ''}${r.calories ? r.calories + ' cal' : ''}</div>
         </div>
         <div class="user-recipe-actions">
           <button class="recipe-action-btn" onclick="event.stopPropagation();openBuilder('${r.id}')">Edit</button>
@@ -2265,6 +2269,54 @@ async function loadUserRecipes() {
       ${r.description ? `<div class="user-recipe-desc">${escHtml(r.description)}</div>` : ''}
       ${r.ingredients?.length ? `<div class="user-recipe-ings">${r.ingredients.slice(0,6).map(i=>`<span class="ing-pill">${escHtml(i)}</span>`).join('')}${r.ingredients.length>6?`<span class="ing-pill">+${r.ingredients.length-6} more</span>`:''}</div>` : ''}
     </div>`).join('');
+}
+
+function openUserRecipe(idx){
+  const r=userRecipes[idx];
+  if(!r)return;
+  fromCookbook=true;
+  activeRecipe={
+    name:r.name,
+    tag:'',
+    time:r.prep_time||'',
+    cals:r.calories||'',
+    desc:r.description||'',
+    photo:r.image_url||'',
+    image_url:r.image_url||'',
+    protein:r.protein||'—',
+    carbs:r.carbs||'—',
+    fat:r.fat||'—',
+    ingredients:r.ingredients||[],
+    steps:(r.steps||[]).map(s=>({
+      text:typeof s==='string'?s:(s.text||s),
+      anim:'prep',
+      tip:''
+    })),
+    _isUserRecipe:true,
+    _userRecipeId:r.id
+  };
+  const det=activeRecipe;
+  document.getElementById('detBackLbl').textContent='My Cookbook';
+  document.getElementById('detHero').src=recipePhoto(det);
+  document.getElementById('detHero').alt=det.name;
+  updateAdminPhotoBtn();
+  document.getElementById('detTitle').textContent=det.name;
+  const tag=document.getElementById('detTag');
+  tag.textContent='';tag.className='';
+  const meta=[];
+  if(det.time)meta.push(det.time);
+  if(det.cals)meta.push(det.cals+' cal');
+  document.getElementById('detMeta').textContent=meta.join(' · ');
+  document.getElementById('detDesc').textContent=det.desc;
+  document.getElementById('dProt').textContent=det.protein;
+  document.getElementById('dCarb').textContent=det.carbs;
+  document.getElementById('dFat').textContent=det.fat;
+  baseScale=2;currentScale=2;
+  document.getElementById('scaleVal').textContent=currentScale;
+  document.getElementById('scaleNote').textContent='Base: 2 servings';
+  renderIngredientList();
+  document.title=det.name+' — Garnish';
+  show('detailScreen');
 }
 
 async function deleteUserRecipe(id) {

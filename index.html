@@ -361,7 +361,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .photo-ed-preview{width:100%;height:200px;object-fit:cover;background:var(--color-background-secondary,#f3f4f6);display:block}
 .photo-ed-body{padding:20px}
 .photo-ed-title{font-size:16px;font-weight:500;color:var(--color-text-primary,#111);margin-bottom:4px}
-.photo-ed-hint{font-size:12px;color:var(--color-text-secondary,#666);margin-bottom:14px}
+.photo-ed-hint{font-size:12px;color:var(--color-text-secondary,#666);margin-bottom:12px}
+.photo-ed-upload-btn{width:100%;padding:12px;border-radius:12px;border:1.5px dashed var(--color-border-secondary,rgba(0,0,0,.2));background:var(--color-background-secondary,#f3f4f6);font-size:14px;font-weight:500;color:var(--gm);cursor:pointer;margin-bottom:10px;transition:background .15s;text-align:center}
+.photo-ed-upload-btn:hover{background:#e8f5e9}
+.photo-ed-divider{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.photo-ed-divider::before,.photo-ed-divider::after{content:'';flex:1;height:0.5px;background:var(--color-border-tertiary,rgba(0,0,0,.1))}
+.photo-ed-divider span{font-size:11px;color:var(--color-text-secondary,#666);white-space:nowrap}
 .photo-ed-input{width:100%;padding:11px 14px;border-radius:10px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:var(--color-background-secondary,#f3f4f6);font-size:14px;color:var(--color-text-primary,#111);outline:none;box-sizing:border-box;margin-bottom:12px}
 .photo-ed-input:focus{border-color:var(--gm);background:#fff}
 .photo-ed-btns{display:flex;gap:8px}
@@ -370,6 +375,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .photo-ed-cancel{padding:12px 18px;border-radius:12px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.18));background:none;font-size:15px;cursor:pointer;color:var(--color-text-secondary,#666)}
 .photo-ed-status{font-size:13px;text-align:center;margin-top:10px;min-height:18px;color:var(--gm)}
 .photo-ed-status.err{color:#c0392b}
+.photo-ed-progress{width:100%;height:4px;border-radius:2px;background:var(--color-background-secondary,#f3f4f6);margin-bottom:10px;display:none;overflow:hidden}
+.photo-ed-progress-bar{height:100%;background:var(--gd);width:0%;transition:width .3s;border-radius:2px}
 .det-body{padding:20px 16px 0}
 .det-title{font-size:24px;font-weight:500;color:var(--color-text-primary,#111);margin-bottom:6px}
 .det-tagrow{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
@@ -2572,6 +2579,43 @@ function photoEdPreviewUpdate(){
   if(url) document.getElementById('photoEdPreview').src=url;
 }
 
+async function handlePhotoUpload(event){
+  if(!isAdmin())return;
+  const file=event.target.files[0];
+  if(!file)return;
+  const status=document.getElementById('photoEdStatus');
+  const progress=document.getElementById('photoEdProgress');
+  const bar=document.getElementById('photoEdProgressBar');
+  const saveBtn=document.getElementById('photoEdSaveBtn');
+  status.className='photo-ed-status';
+  status.textContent='Uploading…';
+  progress.style.display='block';
+  bar.style.width='20%';
+  saveBtn.disabled=true;
+  try{
+    const ext=file.name.split('.').pop().toLowerCase()||'jpg';
+    const path=`recipes/${Date.now()}.${ext}`;
+    bar.style.width='50%';
+    const {error:upErr}=await supa.storage.from('recipe-photos').upload(path,file,{upsert:true,contentType:file.type});
+    if(upErr)throw upErr;
+    bar.style.width='85%';
+    const {data:{publicUrl}}=supa.storage.from('recipe-photos').getPublicUrl(path);
+    bar.style.width='100%';
+    document.getElementById('photoEdInput').value=publicUrl;
+    document.getElementById('photoEdPreview').src=publicUrl;
+    status.textContent='✓ Upload complete — tap Save Photo to apply.';
+    setTimeout(()=>{progress.style.display='none';bar.style.width='0%';},600);
+  }catch(e){
+    progress.style.display='none';
+    bar.style.width='0%';
+    status.className='photo-ed-status err';
+    status.textContent='Upload failed: '+(e.message||'check storage bucket exists.');
+  }finally{
+    saveBtn.disabled=false;
+    event.target.value='';
+  }
+}
+
 async function savePhotoOverride(){
   if(!activeRecipe||!isAdmin())return;
   const r=activeRecipe;
@@ -2610,11 +2654,15 @@ loadPhotoOverrides();
     <img id="photoEdPreview" class="photo-ed-preview" src="" alt="Preview"/>
     <div class="photo-ed-body">
       <div class="photo-ed-title" id="photoEdRecipeName"></div>
-      <div class="photo-ed-hint">Paste any image URL below and tap Preview to check it, then Save.</div>
+      <div class="photo-ed-hint">Upload a photo from your phone or paste an image link below.</div>
+      <input type="file" id="photoEdFileInput" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)"/>
+      <button class="photo-ed-upload-btn" onclick="document.getElementById('photoEdFileInput').click()">📱 Upload from Phone / Computer</button>
+      <div class="photo-ed-progress" id="photoEdProgress"><div class="photo-ed-progress-bar" id="photoEdProgressBar"></div></div>
+      <div class="photo-ed-divider"><span>or paste a link</span></div>
       <input id="photoEdInput" class="photo-ed-input" type="url" placeholder="https://images.unsplash.com/photo-..." oninput="photoEdPreviewUpdate()"/>
       <div class="photo-ed-btns">
         <button class="photo-ed-cancel" onclick="closePhotoEditor()">Cancel</button>
-        <button class="photo-ed-save" onclick="savePhotoOverride()">Save Photo</button>
+        <button class="photo-ed-save" id="photoEdSaveBtn" onclick="savePhotoOverride()">Save Photo</button>
       </div>
       <div id="photoEdStatus" class="photo-ed-status"></div>
     </div>

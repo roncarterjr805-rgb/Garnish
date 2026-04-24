@@ -2526,7 +2526,7 @@ async function saveUserRecipe() {
   btn.textContent = editingRecipeId ? 'Save changes' : 'Save recipe';
 
   if (error) {
-    document.getElementById('builderMsg').textContent = 'Error saving recipe. Please try again.';
+    document.getElementById('builderMsg').textContent = 'Error: ' + (error.message || JSON.stringify(error));
   } else {
     closeBuilder();
     loadUserRecipes();

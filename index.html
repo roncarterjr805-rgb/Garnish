@@ -2604,7 +2604,7 @@ function photoEdPreviewUpdate(){
   if(url) document.getElementById('photoEdPreview').src=url;
 }
 
-async function handlePhotoUpload(event){
+async function handleAdminPhotoUpload(event){
   if(!isAdmin())return;
   const file=event.target.files[0];
   if(!file)return;
@@ -2685,7 +2685,7 @@ loadPhotoOverrides();
     <div class="photo-ed-body">
       <div class="photo-ed-title" id="photoEdRecipeName"></div>
       <div class="photo-ed-hint">Upload a photo from your phone or paste an image link below.</div>
-      <input type="file" id="photoEdFileInput" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)"/>
+      <input type="file" id="photoEdFileInput" accept="image/*" style="display:none" onchange="handleAdminPhotoUpload(event)"/>
       <button class="photo-ed-upload-btn" onclick="document.getElementById('photoEdFileInput').click()">📱 Upload from Phone / Computer</button>
       <div class="photo-ed-progress" id="photoEdProgress"><div class="photo-ed-progress-bar" id="photoEdProgressBar"></div></div>
       <div class="photo-ed-divider"><span>or paste a link</span></div>

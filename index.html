@@ -328,6 +328,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .cat-card{background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.1));border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s}
 .cat-card:hover{transform:translateY(-2px);border-color:var(--color-border-secondary,rgba(0,0,0,.18))}
 .cat-card:active{transform:scale(0.97)}
+.cat-img-wrap{position:relative}
 .cat-img{width:100%;height:140px;object-fit:cover;display:block;background:var(--color-background-secondary,#f3f4f6)}
 .cat-ph{width:100%;height:140px;display:flex;align-items:center;justify-content:center;font-size:40px;background:var(--color-background-secondary,#f3f4f6)}
 .cat-footer{padding:10px 12px}
@@ -1721,9 +1722,14 @@ function renderCats(){
   const g=document.getElementById('catGrid');
   g.innerHTML=CATS.map(c=>{
     const n=R.filter(r=>r.tag===c.id||(c.id==='Quick'&&parseInt(r.time)<=20)).length;
+    const src=photoOverrides['cat:'+c.id]||c.photo;
+    const adminBtn=isAdmin()?`<button class="admin-photo-btn" onclick="event.stopPropagation();openCatPhotoEditor('${c.id}')">📷 Change Photo</button>`:'';
     return`<div class="cat-card" onclick="openCat('${c.id}')">
-      <img class="cat-img" src="${c.photo}" alt="${c.label}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-      <div class="cat-ph" style="display:none">${c.emoji}</div>
+      <div class="cat-img-wrap">
+        <img class="cat-img" src="${src}" alt="${c.label}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+        <div class="cat-ph" style="display:none">${c.emoji}</div>
+        ${adminBtn}
+      </div>
       <div class="cat-footer">
         <div class="cat-name">${c.label}</div>
         <div class="cat-sub">${n} recipes · ${c.desc}</div>
@@ -2548,23 +2554,42 @@ async function loadPhotoOverrides(){
     if(data){
       photoOverrides={};
       data.forEach(row=>{photoOverrides[row.recipe_name]=row.photo_url;});
+      renderCats();
     }
   }catch(e){}
 }
 
+let adminEditorMode='recipe'; // 'recipe' | 'cat'
+let adminEditorCatId=null;
+
 function updateAdminPhotoBtn(){
   const btn=document.getElementById('adminPhotoBtn');
   if(btn) btn.style.display=isAdmin()?'block':'none';
+  renderCats();
 }
 
 function openPhotoEditor(){
   if(!activeRecipe||!isAdmin())return;
+  adminEditorMode='recipe';
   const r=activeRecipe;
   const current=photoOverrides[r.name]||r.photo||'';
-  const img=document.getElementById('photoEdPreview');
-  img.src=current;
+  document.getElementById('photoEdPreview').src=current;
   document.getElementById('photoEdInput').value=current;
   document.getElementById('photoEdRecipeName').textContent=r.name;
+  document.getElementById('photoEdStatus').textContent='';
+  document.getElementById('photoEdStatus').className='photo-ed-status';
+  document.getElementById('photoEdOverlay').classList.add('open');
+}
+
+function openCatPhotoEditor(catId){
+  if(!isAdmin())return;
+  adminEditorMode='cat';
+  adminEditorCatId=catId;
+  const cat=CATS.find(c=>c.id===catId);
+  const current=photoOverrides['cat:'+catId]||(cat?cat.photo:'')||'';
+  document.getElementById('photoEdPreview').src=current;
+  document.getElementById('photoEdInput').value=current;
+  document.getElementById('photoEdRecipeName').textContent=cat?cat.label+' (category)':catId;
   document.getElementById('photoEdStatus').textContent='';
   document.getElementById('photoEdStatus').className='photo-ed-status';
   document.getElementById('photoEdOverlay').classList.add('open');
@@ -2617,21 +2642,26 @@ async function handlePhotoUpload(event){
 }
 
 async function savePhotoOverride(){
-  if(!activeRecipe||!isAdmin())return;
-  const r=activeRecipe;
+  if(!isAdmin())return;
   const url=document.getElementById('photoEdInput').value.trim();
   if(!url)return;
   const status=document.getElementById('photoEdStatus');
   status.className='photo-ed-status';
   status.textContent='Saving…';
+  const key=adminEditorMode==='cat'?'cat:'+adminEditorCatId:activeRecipe?.name;
+  if(!key)return;
   try{
     const {error}=await supa.from('photo_overrides').upsert(
-      {recipe_name:r.name,photo_url:url},
+      {recipe_name:key,photo_url:url},
       {onConflict:'recipe_name'}
     );
     if(error)throw error;
-    photoOverrides[r.name]=url;
-    document.getElementById('detHero').src=url;
+    photoOverrides[key]=url;
+    if(adminEditorMode==='cat'){
+      renderCats();
+    }else{
+      document.getElementById('detHero').src=url;
+    }
     status.textContent='✓ Saved!';
     setTimeout(closePhotoEditor,900);
   }catch(e){

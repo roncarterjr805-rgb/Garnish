@@ -1621,19 +1621,8 @@ function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.re
 const STOP_WORDS=new Set(['with','and','in','on','the','a','an','of','for','to','no','my','style','lighter','version','quick','easy','simple','batch','big','classic','loaded','whole','fresh','baked','grilled','roasted','pan','sheet','one','slow','fast','instant','homemade','make','ahead','meal','prep','5','10','15','20','30','45','min','minute','minutes']);
 
 function recipePhoto(recipe){
-  // If it's a user recipe with a custom image URL, use that directly
   if(recipe.image_url) return recipe.image_url;
-
-  // Build keyword string from recipe name
-  const words = recipe.name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g,'')
-    .split(/\s+/)
-    .filter(w => w.length > 2 && !STOP_WORDS.has(w));
-
-  // Always append 'food' so Unsplash knows the context
-  const keywords = [...words.slice(0,4), 'food'].join(',');
-  return `https://source.unsplash.com/600x400/?${encodeURIComponent(keywords)}`;
+  return recipe.photo || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80';
 }
 
 // Load persisted data from localStorage

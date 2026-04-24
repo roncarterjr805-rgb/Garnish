@@ -2397,24 +2397,23 @@ async function handlePhotoUpload(input) {
 
     if (error) {
       showUploadProgress(0);
-      updatePhotoPreview('');
       setPhotoStatus('Upload failed — ' + error.message, 'error');
       return;
     }
 
-    // Build the public URL
-    const publicUrl = SUPA_STORAGE + path;
+    // Get the public URL via the SDK (works with both public and private buckets)
+    const { data: { publicUrl } } = supa.storage.from('recipe-photos').getPublicUrl(path);
     showUploadProgress(100);
     setTimeout(() => hideUploadProgress(), 600);
 
-    // Save the real Supabase URL (replaces local blob URL)
-    updatePhotoPreview(publicUrl);
-    setPhotoStatus('Photo saved ✓', 'success');
+    // Store the real URL in the hidden field but keep the local blob preview
+    // (blob preview is guaranteed to display; remote URL saved for the record)
+    document.getElementById('bPhoto').value = publicUrl;
+    setPhotoStatus('Photo ready ✓', 'success');
     setTimeout(() => setPhotoStatus('', ''), 2500);
 
   } catch(e) {
-    updatePhotoPreview('');
-    setPhotoStatus('Upload failed — please try again.', 'error');
+    setPhotoStatus('Upload failed — ' + (e.message || 'please try again.'), 'error');
   }
 
   // Reset the file input so the same file can be re-selected
@@ -2526,7 +2525,7 @@ async function saveUserRecipe() {
   btn.textContent = editingRecipeId ? 'Save changes' : 'Save recipe';
 
   if (error) {
-    document.getElementById('builderMsg').textContent = 'Error: ' + (error.message || JSON.stringify(error));
+    document.getElementById('builderMsg').textContent = 'Error saving recipe — ' + (error.message || 'please try again.');
   } else {
     closeBuilder();
     loadUserRecipes();

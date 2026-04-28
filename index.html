@@ -458,6 +458,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .excl-chip{display:flex;align-items:center;gap:4px;padding:3px 10px 3px 12px;border-radius:12px;background:var(--cb);color:var(--ct);font-size:12px;font-weight:500}
 .excl-chip button{background:none;border:none;cursor:pointer;font-size:14px;line-height:1;color:var(--ct);padding:0}
 .no-results{text-align:center;padding:48px 20px;color:var(--color-text-secondary,#666);font-size:14px}
+/* ═══ GLOBAL SEARCH ═══ */
+.home-search-wrap{padding:20px 20px 4px;max-width:520px;margin:0 auto}
+.home-search-bar{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--gb);border-radius:14px;padding:0 14px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.home-search-bar:focus-within{border-color:var(--gm)}
+.home-search-icon{color:var(--gm);flex-shrink:0;opacity:.7}
+.home-search-input{flex:1;border:none;background:none;padding:13px 4px;font-size:15px;color:var(--gd);outline:none}
+.home-search-input::placeholder{color:#aaa}
+.home-search-clear{border:none;background:none;color:#aaa;cursor:pointer;font-size:17px;padding:4px;line-height:1;display:flex;align-items:center}
+.home-search-clear:hover{color:var(--gd)}
+.global-search-results{padding-bottom:40px}
+.global-search-count{padding:14px 16px 2px;font-size:13px;color:var(--gm);font-weight:500}
 
 /* ═══ FEATURE 2: RECIPE SCALING on detail screen ═══ */
 .scale-bar{background:var(--color-background-secondary,#f3f4f6);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
@@ -642,8 +653,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="cat-hero">
     <h1>What are you in the mood for?</h1>
     <p>Pick a category, browse recipes, and order fresh ingredients straight to your door.</p>
+    <div class="home-search-wrap">
+      <div class="home-search-bar">
+        <svg class="home-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="home-search-input" id="globalSearchInput" type="search" placeholder="Search all 632 recipes or by ingredient…" oninput="globalSearch()" autocomplete="off" spellcheck="false"/>
+        <button class="home-search-clear" id="globalSearchClear" onclick="clearGlobalSearch()" style="display:none" aria-label="Clear search">✕</button>
+      </div>
+    </div>
   </div>
-  <button class="spinner-btn" onclick="openSpinner()">🎰 Surprise me — spin the wheel</button>
+  <div id="globalSearchResults" class="global-search-results" style="display:none"></div>
+  <button class="spinner-btn" id="spinnerBtn" onclick="openSpinner()">🎰 Surprise me — spin the wheel</button>
   <div class="cat-grid" id="catGrid"></div>
   <footer class="footer">
     <p>🌿 Garnish &nbsp;·&nbsp; 632 healthy recipes &nbsp;·&nbsp; Step-by-step cooking mode<br/>
@@ -1738,7 +1757,69 @@ function renderCats(){
     </div>`;
   }).join('');
 }
-function showCats(){clearInterval(timerInterval);timerRunning=false;activeCat=null;activeRecipe=null;releaseWakeLock();show('catScreen');document.title='Garnish — Healthy Meal Recipes';}
+function showCats(){
+  clearInterval(timerInterval);timerRunning=false;activeCat=null;activeRecipe=null;releaseWakeLock();
+  // Reset global search
+  const inp=document.getElementById('globalSearchInput');
+  if(inp)inp.value='';
+  const res=document.getElementById('globalSearchResults');
+  if(res)res.style.display='none';
+  const catGrid=document.getElementById('catGrid');
+  if(catGrid)catGrid.style.display='';
+  const spinnerBtn=document.getElementById('spinnerBtn');
+  if(spinnerBtn)spinnerBtn.style.display='';
+  const clr=document.getElementById('globalSearchClear');
+  if(clr)clr.style.display='none';
+  show('catScreen');
+  document.title='Garnish — Healthy Meal Recipes';
+}
+
+// ══════════════════════════════════════════════════════════
+// GLOBAL RECIPE SEARCH (main menu)
+// ══════════════════════════════════════════════════════════
+function globalSearch(){
+  const q=document.getElementById('globalSearchInput').value.toLowerCase().trim();
+  const results=document.getElementById('globalSearchResults');
+  const catGrid=document.getElementById('catGrid');
+  const spinnerBtn=document.getElementById('spinnerBtn');
+  const clrBtn=document.getElementById('globalSearchClear');
+  clrBtn.style.display=q?'flex':'none';
+  if(!q){
+    results.style.display='none';
+    catGrid.style.display='';
+    spinnerBtn.style.display='';
+    return;
+  }
+  catGrid.style.display='none';
+  spinnerBtn.style.display='none';
+  results.style.display='block';
+  const matches=R.filter(r=>
+    r.name.toLowerCase().includes(q)||
+    (r.ingredients||[]).some(ing=>ing.toLowerCase().includes(q))
+  );
+  if(!matches.length){
+    results.innerHTML='<div class="no-results">No recipes found for "'+escHtml(q)+'"<br/>Try a different word or ingredient.</div>';
+    return;
+  }
+  results.innerHTML=
+    '<div class="global-search-count">'+matches.length+' recipe'+(matches.length===1?'':'s')+' found</div>'+
+    '<div class="r-grid">'+matches.map(r=>{
+      const i=R.indexOf(r);
+      return`<div class="r-card" onclick="openRecipe(${i})">
+        <img class="r-img" src="${recipePhoto(r)}" alt="${escHtml(r.name)}" loading="lazy"/>
+        <div class="r-body">
+          <div class="r-name">${escHtml(r.name)}</div>
+          <div class="r-meta">${r.time} · ${r.cals} cal</div>
+          <span class="tag ${TC[r.tag]||'tag-blue'}">${r.tag}</span>
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+}
+
+function clearGlobalSearch(){
+  document.getElementById('globalSearchInput').value='';
+  globalSearch();
+}
 
 // ══════════════════════════════════════════════════════════
 // FEATURE 1 — INGREDIENT FILTER (Search + Exclude)

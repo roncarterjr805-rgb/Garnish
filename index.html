@@ -2273,7 +2273,7 @@ async function submitAuth() {
 async function signInWithGoogle() {
   const { error } = await supa.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.href }
+    options: { redirectTo: window.location.origin + window.location.pathname }
   });
   if (error) showAuthMsg(error.message, 'error');
 }

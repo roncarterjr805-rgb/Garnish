@@ -655,6 +655,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <nav class="nav" style="position:relative">
     <span class="nav-logo">🌿 Garnish</span>
     <div class="nav-auth">
+      <button class="nav-cookbook-btn" id="navFavoritesBtn" style="display:none" onclick="openFavorites()">❤️ My Favorites</button>
       <button class="nav-cookbook-btn" id="navCookbookBtn" style="display:none" onclick="openCookbook()">📖 My Cookbook</button>
       <button class="nav-avatar" id="navAvatar" style="display:none" onclick="toggleUserMenu()"></button>
       <button class="nav-login-btn" id="navLoginBtn" onclick="openAuth()">Sign in</button>
@@ -2362,9 +2363,11 @@ supa.auth.onAuthStateChange((event, session) => {
   currentUser = session?.user || null;
   updateNavAuth();
   updateAdminPhotoBtn();
-  if (currentUser) {
-    userFavorites = new Set(currentUser.user_metadata?.favorites || []);
-  } else {
+  // Only reload favorites from server on login/refresh — not on USER_UPDATED
+  // (which fires after our own updateUser call and can race with local state)
+  if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
+    userFavorites = new Set(currentUser?.user_metadata?.favorites || []);
+  } else if (event === 'SIGNED_OUT') {
     userFavorites = new Set();
   }
   updateFavBtn();
@@ -2377,21 +2380,21 @@ function updateNavAuth() {
   const loginBtn  = document.getElementById('navLoginBtn');
   const avatar    = document.getElementById('navAvatar');
   const cbBtn     = document.getElementById('navCookbookBtn');
+  const favBtn    = document.getElementById('navFavoritesBtn');
 
   if (currentUser) {
-    // Logged in
     loginBtn.style.display  = 'none';
     avatar.style.display    = 'flex';
     cbBtn.style.display     = 'flex';
-    // Show initials in avatar
+    favBtn.style.display    = 'flex';
     const initials = (currentUser.email || 'U').substring(0, 1).toUpperCase();
     avatar.textContent = initials;
     document.getElementById('userMenuEmail').textContent = currentUser.email;
   } else {
-    // Logged out
     loginBtn.style.display  = 'flex';
     avatar.style.display    = 'none';
     cbBtn.style.display     = 'none';
+    favBtn.style.display    = 'none';
   }
 }
 

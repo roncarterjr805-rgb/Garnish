@@ -395,6 +395,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ing-row:hover{background:var(--color-background-secondary,#f3f4f6)}
 .ing-name{font-size:14px;color:var(--color-text-primary,#111)}
 .ing-amount{font-size:12px;font-weight:500;color:var(--color-text-secondary,#666);background:var(--color-background-secondary,#f3f4f6);border-radius:6px;padding:2px 7px;margin-left:8px;white-space:nowrap}
+.fav-btn{margin-left:auto;background:none;border:none;font-size:24px;cursor:pointer;padding:6px 8px;line-height:1;transition:transform .15s;color:var(--color-text-secondary,#aaa)}
+.fav-btn:hover{transform:scale(1.2)}
+.fav-btn.active{color:#e74c3c}
+.cookbook-tabs{display:flex;gap:0;margin-bottom:20px;border-radius:12px;background:var(--color-background-secondary,#f3f4f6);padding:3px}
+.cookbook-tab{flex:1;padding:9px;border-radius:10px;border:none;background:none;font-size:14px;font-weight:500;cursor:pointer;color:var(--color-text-secondary,#666);transition:all .15s}
+.cookbook-tab.active{background:var(--color-background-primary,#fff);color:var(--color-text-primary,#111);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.fav-recipe-card{display:flex;align-items:center;gap:14px;padding:14px;background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.1));border-radius:14px;margin-bottom:10px;cursor:pointer;transition:background .12s}
+.fav-recipe-card:hover{background:var(--color-background-secondary,#f3f4f6)}
+.fav-recipe-img{width:64px;height:64px;border-radius:10px;object-fit:cover;flex:0 0 auto}
+.fav-recipe-info{flex:1;min-width:0}
+.fav-recipe-name{font-size:15px;font-weight:500;color:var(--color-text-primary,#111);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fav-recipe-meta{font-size:12px;color:var(--color-text-secondary,#666)}
+.fav-unfav-btn{background:none;border:none;font-size:20px;cursor:pointer;color:#e74c3c;padding:6px;flex:0 0 auto;opacity:.7}
+.fav-unfav-btn:hover{opacity:1}
 .ing-shop{font-size:11px;padding:4px 12px;border-radius:10px;background:var(--bb);color:var(--bt);border:none;cursor:pointer;font-weight:500;white-space:nowrap;text-decoration:none;display:inline-block}
 .ing-shop:hover{opacity:.85}
 .fresh-btn{width:100%;padding:17px;border-radius:12px;border:none;background:var(--gd);color:white;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;transition:opacity .15s}
@@ -647,6 +661,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
     <div class="user-menu" id="userMenu">
       <div class="user-menu-email" id="userMenuEmail"></div>
+      <button class="user-menu-item" onclick="openFavorites();toggleUserMenu()">❤️ Favorites</button>
       <button class="user-menu-item" onclick="openCookbook();toggleUserMenu()">📖 My Cookbook</button>
       <button class="user-menu-item danger" onclick="signOut()">Sign out</button>
     </div>
@@ -713,18 +728,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <button class="nav-avatar" id="cookbookAvatar" onclick="toggleUserMenu()"></button>
     <div class="user-menu" id="cookbookUserMenu">
       <div class="user-menu-email" id="cookbookUserEmail"></div>
+      <button class="user-menu-item" onclick="openFavorites()">❤️ Favorites</button>
+      <button class="user-menu-item" onclick="openCookbook()">📖 My Cookbook</button>
       <button class="user-menu-item danger" onclick="signOut()">Sign out</button>
     </div>
   </nav>
   <div class="cookbook-wrap">
-    <div class="cookbook-header">
-      <div>
-        <div class="cookbook-title">📖 My Cookbook</div>
-        <div class="cookbook-count" id="cookbookCount">Your private recipes</div>
-      </div>
-      <button class="add-recipe-btn" onclick="openBuilder(null)">+ New recipe</button>
+    <div class="cookbook-tabs">
+      <button class="cookbook-tab active" id="tabCookbook" onclick="switchCookbookTab('cookbook')">📖 My Cookbook</button>
+      <button class="cookbook-tab" id="tabFavorites" onclick="switchCookbookTab('favorites')">❤️ Favorites</button>
     </div>
-    <div id="cookbookList"></div>
+    <!-- Cookbook tab -->
+    <div id="cookbookPane">
+      <div class="cookbook-header">
+        <div>
+          <div class="cookbook-title">📖 My Cookbook</div>
+          <div class="cookbook-count" id="cookbookCount">Your private recipes</div>
+        </div>
+        <button class="add-recipe-btn" onclick="openBuilder(null)">+ New recipe</button>
+      </div>
+      <div id="cookbookList"></div>
+    </div>
+    <!-- Favorites tab -->
+    <div id="favoritesPane" style="display:none">
+      <div class="cookbook-header">
+        <div>
+          <div class="cookbook-title">❤️ Favorites</div>
+          <div class="cookbook-count" id="favoritesCount">Your saved recipes</div>
+        </div>
+      </div>
+      <div id="favoritesList"></div>
+    </div>
   </div>
 </div>
 
@@ -867,11 +901,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <!-- SCREEN 3: RECIPE DETAIL -->
 <div id="detailScreen" class="screen">
-  <nav class="nav">
+  <nav class="nav" style="display:flex;align-items:center">
     <button class="nav-back" onclick="backToList()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span id="detBackLbl">Recipes</span>
     </button>
+    <button class="fav-btn" id="favBtn" onclick="toggleFavorite()" title="Save to favorites" style="display:none">♡</button>
   </nav>
   <div class="det-wrap">
     <div class="det-hero-wrap">
@@ -1652,6 +1687,7 @@ const R=[
 let activeCat=null,activeRecipe=null,stepIdx=0,timerInterval=null,timerSecs=0,timerRunning=false,fromCookbook=false;
 let userRecipes=[];
 let currentScale=2,baseScale=2;
+let userFavorites=new Set(); // set of recipe names
 let exclusions=[];
 let tips={};        // { recipeIdx: [{text, votes, id}] }
 let votedTips={};   // { tipId: true }
@@ -2184,6 +2220,7 @@ function openRecipe(idx){
   renderIngredientList();
   // Render tips
   renderTips(idx);
+  updateFavBtn();
   document.title=`${r.name} — Garnish`;
   show('detailScreen');
 }
@@ -2325,6 +2362,12 @@ supa.auth.onAuthStateChange((event, session) => {
   currentUser = session?.user || null;
   updateNavAuth();
   updateAdminPhotoBtn();
+  if (currentUser) {
+    userFavorites = new Set(currentUser.user_metadata?.favorites || []);
+  } else {
+    userFavorites = new Set();
+  }
+  updateFavBtn();
 });
 
 // ══════════════════════════════════════════════════════════
@@ -2446,16 +2489,124 @@ function showAuthMsg(text, type) {
 }
 
 // ══════════════════════════════════════════════════════════
-// COOKBOOK SCREEN
+// FAVORITES
 // ══════════════════════════════════════════════════════════
-function openCookbook() {
+function updateFavBtn() {
+  const btn = document.getElementById('favBtn');
+  if (!btn) return;
+  const isUserRecipe = activeRecipe && activeRecipe._isUserRecipe;
+  if (!activeRecipe || isUserRecipe) { btn.style.display = 'none'; return; }
+  btn.style.display = 'block';
+  const saved = currentUser && userFavorites.has(activeRecipe.name);
+  btn.textContent = saved ? '♥' : '♡';
+  btn.classList.toggle('active', !!saved);
+  btn.title = saved ? 'Remove from favorites' : 'Save to favorites';
+}
+
+async function toggleFavorite() {
   if (!currentUser) { openAuth(); return; }
-  // Update cookbook nav avatar
+  if (!activeRecipe || activeRecipe._isUserRecipe) return;
+  const name = activeRecipe.name;
+  if (userFavorites.has(name)) {
+    userFavorites.delete(name);
+  } else {
+    userFavorites.add(name);
+  }
+  updateFavBtn();
+  // Persist to Supabase user metadata (no extra table needed)
+  await supa.auth.updateUser({ data: { favorites: [...userFavorites] } });
+}
+
+function openFavorites() {
+  if (!currentUser) { openAuth(); return; }
   const initials = currentUser.email.substring(0,1).toUpperCase();
   document.getElementById('cookbookAvatar').textContent = initials;
   document.getElementById('cookbookUserEmail').textContent = currentUser.email;
   show('cookbookScreen');
-  loadUserRecipes();
+  switchCookbookTab('favorites');
+}
+
+function switchCookbookTab(tab) {
+  document.getElementById('cookbookPane').style.display   = tab === 'cookbook'  ? '' : 'none';
+  document.getElementById('favoritesPane').style.display  = tab === 'favorites' ? '' : 'none';
+  document.getElementById('tabCookbook').classList.toggle('active',  tab === 'cookbook');
+  document.getElementById('tabFavorites').classList.toggle('active', tab === 'favorites');
+  if (tab === 'cookbook')  loadUserRecipes();
+  if (tab === 'favorites') renderFavoritesList();
+}
+
+function renderFavoritesList() {
+  const list = document.getElementById('favoritesList');
+  const favNames = [...userFavorites];
+  // Match saved names against built-in recipe array R
+  const matched = favNames.map(name => R.find(r => r.name === name)).filter(Boolean);
+  document.getElementById('favoritesCount').textContent =
+    matched.length === 0 ? 'No favorites yet' :
+    matched.length === 1 ? '1 saved recipe' : `${matched.length} saved recipes`;
+  if (matched.length === 0) {
+    list.innerHTML = `
+      <div class="cookbook-empty">
+        <div class="cookbook-empty-icon">♡</div>
+        <div class="cookbook-empty-title">No favorites yet</div>
+        <div class="cookbook-empty-sub">Tap the ♡ on any recipe to save it here for quick access.</div>
+      </div>`;
+    return;
+  }
+  list.innerHTML = matched.map(r => `
+    <div class="fav-recipe-card" onclick="openFavRecipe(${JSON.stringify(r.name).replace(/"/g,'&quot;')})">
+      <img class="fav-recipe-img" src="${r.photo||''}" alt="${escHtml(r.name)}" loading="lazy"
+           onerror="this.src='https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=120&q=80'"/>
+      <div class="fav-recipe-info">
+        <div class="fav-recipe-name">${r.emoji||''} ${escHtml(r.name)}</div>
+        <div class="fav-recipe-meta">${r.tag||''}${r.time?' · '+r.time:''}${r.cals?' · '+r.cals+' cal':''}</div>
+      </div>
+      <button class="fav-unfav-btn" onclick="event.stopPropagation();unfavorite(${JSON.stringify(r.name).replace(/"/g,'&quot;')})" title="Remove">♥</button>
+    </div>`).join('');
+}
+
+function openFavRecipe(name) {
+  const r = R.find(r => r.name === name);
+  if (!r) return;
+  const idx = R.indexOf(r);
+  fromCookbook = true;
+  activeRecipe = r;
+  document.getElementById('detBackLbl').textContent = 'Favorites';
+  document.getElementById('detHero').src = r.photo || '';
+  document.getElementById('detHero').alt = r.name;
+  updateAdminPhotoBtn();
+  currentScale = baseScale = 2;
+  document.getElementById('detTitle').textContent = r.name;
+  document.getElementById('detTag').textContent   = r.tag || '';
+  document.getElementById('detMeta').textContent  = [r.time, r.cals ? r.cals+' cal' : ''].filter(Boolean).join(' · ');
+  document.getElementById('detDesc').textContent  = r.desc || '';
+  document.getElementById('dProt').textContent    = r.protein || '—';
+  document.getElementById('dCarb').textContent    = r.carbs || '—';
+  document.getElementById('dFat').textContent     = r.fat || '—';
+  document.getElementById('scaleVal').textContent  = currentScale;
+  document.getElementById('scaleNote').textContent = 'Base: '+baseScale+' servings';
+  renderIngredientList();
+  renderTips(idx);
+  updateFavBtn();
+  show('detailScreen');
+}
+
+async function unfavorite(name) {
+  userFavorites.delete(name);
+  await supa.auth.updateUser({ data: { favorites: [...userFavorites] } });
+  renderFavoritesList();
+  updateFavBtn();
+}
+
+// ══════════════════════════════════════════════════════════
+// COOKBOOK SCREEN
+// ══════════════════════════════════════════════════════════
+function openCookbook() {
+  if (!currentUser) { openAuth(); return; }
+  const initials = currentUser.email.substring(0,1).toUpperCase();
+  document.getElementById('cookbookAvatar').textContent = initials;
+  document.getElementById('cookbookUserEmail').textContent = currentUser.email;
+  show('cookbookScreen');
+  switchCookbookTab('cookbook');
 }
 
 async function loadUserRecipes() {
@@ -2552,6 +2703,7 @@ function openUserRecipe(idx){
   document.getElementById('scaleVal').textContent=currentScale;
   document.getElementById('scaleNote').textContent='Base: 2 servings';
   renderIngredientList();
+  updateFavBtn();
   document.title=det.name+' — Garnish';
   show('detailScreen');
 }

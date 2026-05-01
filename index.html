@@ -2366,7 +2366,7 @@ supa.auth.onAuthStateChange((event, session) => {
   // Only reload favorites from server on login/refresh — not on USER_UPDATED
   // (which fires after our own updateUser call and can race with local state)
   if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
-    userFavorites = new Set(currentUser?.user_metadata?.favorites || []);
+    loadFavorites();
   } else if (event === 'SIGNED_OUT') {
     userFavorites = new Set();
   }
@@ -2492,8 +2492,36 @@ function showAuthMsg(text, type) {
 }
 
 // ══════════════════════════════════════════════════════════
-// FAVORITES
+// FAVORITES  (localStorage-backed, keyed per user)
 // ══════════════════════════════════════════════════════════
+function favKey() {
+  return currentUser ? 'g_favs_' + currentUser.id : null;
+}
+
+function saveFavorites() {
+  const k = favKey();
+  if (!k) return;
+  localStorage.setItem(k, JSON.stringify([...userFavorites]));
+  // Best-effort sync to Supabase metadata (don't await — never blocks UI)
+  supa.auth.updateUser({ data: { favorites: [...userFavorites] } }).catch(() => {});
+}
+
+function loadFavorites() {
+  const k = favKey();
+  if (!k) { userFavorites = new Set(); return; }
+  try {
+    const local = JSON.parse(localStorage.getItem(k) || 'null');
+    if (local && local.length > 0) {
+      userFavorites = new Set(local);
+      return;
+    }
+  } catch {}
+  // Fall back to Supabase metadata (cross-device recovery)
+  const server = currentUser?.user_metadata?.favorites;
+  userFavorites = new Set(Array.isArray(server) ? server : []);
+  if (userFavorites.size > 0) saveFavorites(); // prime localStorage
+}
+
 function updateFavBtn() {
   const btn = document.getElementById('favBtn');
   if (!btn) return;
@@ -2506,7 +2534,7 @@ function updateFavBtn() {
   btn.title = saved ? 'Remove from favorites' : 'Save to favorites';
 }
 
-async function toggleFavorite() {
+function toggleFavorite() {
   if (!currentUser) { openAuth(); return; }
   if (!activeRecipe || activeRecipe._isUserRecipe) return;
   const name = activeRecipe.name;
@@ -2515,9 +2543,8 @@ async function toggleFavorite() {
   } else {
     userFavorites.add(name);
   }
+  saveFavorites();
   updateFavBtn();
-  // Persist to Supabase user metadata (no extra table needed)
-  await supa.auth.updateUser({ data: { favorites: [...userFavorites] } });
 }
 
 function openFavorites() {
@@ -2541,7 +2568,6 @@ function switchCookbookTab(tab) {
 function renderFavoritesList() {
   const list = document.getElementById('favoritesList');
   const favNames = [...userFavorites];
-  // Match saved names against built-in recipe array R
   const matched = favNames.map(name => R.find(r => r.name === name)).filter(Boolean);
   document.getElementById('favoritesCount').textContent =
     matched.length === 0 ? 'No favorites yet' :
@@ -2593,9 +2619,9 @@ function openFavRecipe(name) {
   show('detailScreen');
 }
 
-async function unfavorite(name) {
+function unfavorite(name) {
   userFavorites.delete(name);
-  await supa.auth.updateUser({ data: { favorites: [...userFavorites] } });
+  saveFavorites();
   renderFavoritesList();
   updateFavBtn();
 }

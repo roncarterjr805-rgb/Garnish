@@ -394,6 +394,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ing-row:last-child{border-bottom:none}
 .ing-row:hover{background:var(--color-background-secondary,#f3f4f6)}
 .ing-name{font-size:14px;color:var(--color-text-primary,#111)}
+.ing-amount{font-size:12px;font-weight:500;color:var(--color-text-secondary,#666);background:var(--color-background-secondary,#f3f4f6);border-radius:6px;padding:2px 7px;margin-left:8px;white-space:nowrap}
 .ing-shop{font-size:11px;padding:4px 12px;border-radius:10px;background:var(--bb);color:var(--bt);border:none;cursor:pointer;font-weight:500;white-space:nowrap;text-decoration:none;display:inline-block}
 .ing-shop:hover{opacity:.85}
 .fresh-btn{width:100%;padding:17px;border-radius:12px;border:none;background:var(--gd);color:white;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;transition:opacity .15s}
@@ -1933,13 +1934,167 @@ function scaleIngredient(ing,scale,base){
   return display+' '+m[2];
 }
 
+// Estimate a sensible amount for a given ingredient name at the requested serving count
+function estimateAmount(ingName,scale){
+  // Normalize common plurals for reliable matching
+  const n=ingName.toLowerCase().trim()
+    .replace(/\bpotatoes\b/g,'potato').replace(/\btomatoes\b/g,'tomato')
+    .replace(/\bcarrots\b/g,'carrot').replace(/\bmushrooms\b/g,'mushroom')
+    .replace(/\bonions\b/g,'onion').replace(/\bscallions\b/g,'scallion')
+    .replace(/\bleeks\b/g,'leek').replace(/\blemons\b/g,'lemon').replace(/\blimes\b/g,'lime')
+    .replace(/\bnoodles\b/g,'noodle').replace(/\bstalks\b/g,'stalk')
+    .replace(/\bfillets\b/g,'fillet').replace(/\bthighs\b/g,'thigh')
+    .replace(/\bbreasts\b/g,'breast').replace(/\bshallots\b/g,'shallot')
+    .replace(/\bnuts\b/g,'nut').replace(/\bseeds\b/g,'seed')
+    .replace(/\bcucumbers\b/g,'cucumber').replace(/\bavocados\b/g,'avocado');
+  function fmt(num){
+    if(num<0.1)return null;
+    const fracs={'0.25':'¼','0.5':'½','0.75':'¾','0.33':'⅓','0.67':'⅔','0.125':'⅛'};
+    const whole=Math.floor(num);
+    const frac=+(num-whole).toFixed(2);
+    const nf=Object.keys(fracs).find(f=>Math.abs(frac-+f)<0.07);
+    if(whole===0&&nf)return fracs[nf];
+    if(whole>0&&nf)return whole+fracs[nf];
+    return num%1===0?String(num):num.toFixed(1).replace(/\.0$/,'');
+  }
+  // scalable=true scales linearly with servings; false keeps amount fixed
+  function qty(perServing,unit,scalable=true){
+    const total=scalable?perServing*scale:perServing;
+    const f=fmt(total);
+    if(!f)return null;
+    return unit?f+' '+unit:f;
+  }
+  // Eggs
+  if(n.match(/\beggs?\b/))return qty(1,'egg');
+  // Fish & seafood
+  if(n.match(/\bsalmon fillet|cod fillet|fish fillet\b/))return qty(1,'fillet');
+  if(n.match(/\bsalmon|cod|tilapia|halibut|sea bass|trout|tuna steak\b/))return qty(5,'oz');
+  if(n.match(/\bshrimp|prawns\b/))return qty(4,'oz');
+  if(n.match(/\btuna\b/)&&n.match(/\bcan\b/))return qty(1,'can');
+  // Poultry
+  if(n.match(/\bchicken breast\b/))return qty(1,'breast');
+  if(n.match(/\bchicken thigh\b/))return qty(2,'thighs');
+  if(n.match(/\bchicken\b/))return qty(5,'oz');
+  if(n.match(/\bturkey breast\b/))return qty(5,'oz');
+  if(n.match(/\bground turkey|ground chicken\b/))return qty(4,'oz');
+  // Meat
+  if(n.match(/\bground beef|beef mince\b/))return qty(4,'oz');
+  if(n.match(/\bbeef|steak|sirloin|ribeye|brisket\b/))return qty(5,'oz');
+  if(n.match(/\bpork chop|pork loin|pork tenderloin\b/))return qty(5,'oz');
+  if(n.match(/\bpork\b/))return qty(5,'oz');
+  if(n.match(/\blamb\b/))return qty(5,'oz');
+  if(n.match(/\bham\b/))return qty(3,'oz');
+  // Broth / stock — must come before beef/chicken/vegetable keyword checks
+  if(n.match(/\bbroth|stock\b/))return qty(1,'cup');
+  // Plant proteins
+  if(n.match(/\btofu\b/))return qty(4,'oz');
+  if(n.match(/\btempeh\b/))return qty(3,'oz');
+  if(n.match(/\bchickpeas|garbanzo\b/))return qty(0.5,'cup');
+  if(n.match(/\bblack beans|kidney beans|cannellini|white beans|pinto beans|navy beans|lentils\b/))return qty(0.5,'cup');
+  // Grains & starches
+  if(n.match(/\b(brown|white|jasmine|basmati|wild)?\s*rice\b/))return qty(0.5,'cup dry');
+  if(n.match(/\bquinoa\b/))return qty(0.5,'cup dry');
+  if(n.match(/\bfarro\b/))return qty(0.5,'cup dry');
+  if(n.match(/\bcouscous\b/))return qty(0.5,'cup dry');
+  if(n.match(/\boats|oatmeal\b/))return qty(0.5,'cup');
+  if(n.match(/\bpasta|spaghetti|penne|linguine|fettuccine|rigatoni|orzo\b/))return qty(2,'oz');
+  if(n.match(/\begg noodle|ramen noodle|noodle\b/))return qty(2,'oz');
+  if(n.match(/\bditalini\b/))return qty(2,'oz');
+  if(n.match(/\bpita\b/))return qty(1,'pita');
+  if(n.match(/\btortilla|wrap\b/))return qty(1,'');
+  if(n.match(/\bbread\b/))return qty(2,'slices');
+  if(n.match(/\bflour\b/))return qty(0.5,'cup');
+  // Sweet potato before potato
+  if(n.match(/\bsweet potato|yam\b/))return qty(1,'medium');
+  if(n.match(/\bpotato\b/))return qty(1,'medium');
+  // Dairy
+  if(n.match(/\bparmesan|pecorino\b/))return qty(1,'oz');
+  if(n.match(/\bmozzarella|burrata\b/))return qty(1.5,'oz');
+  if(n.match(/\bfeta\b/))return qty(1.5,'oz');
+  if(n.match(/\bgoat cheese|ricotta|cream cheese\b/))return qty(1.5,'oz');
+  if(n.match(/\bcheddar|gouda|swiss|gruyere|brie\b/))return qty(1,'oz');
+  if(n.match(/\bheavy cream|double cream|whipping cream\b/))return qty(0.25,'cup');
+  if(n.match(/\bcoconut milk|coconut cream\b/))return qty(0.25,'cup');
+  if(n.match(/\bmilk|oat milk|almond milk|soy milk\b/))return qty(0.25,'cup');
+  if(n.match(/\bgreek yogurt|yogurt\b/))return qty(0.5,'cup');
+  if(n.match(/\bbutter\b/))return qty(1,'tbsp');
+  // Oils & fats
+  if(n.match(/\bsesame oil\b/))return qty(0.5,'tbsp');
+  if(n.match(/\bolive oil|coconut oil|avocado oil|vegetable oil\b/))return qty(1,'tbsp');
+  // Vegetables
+  if(n.match(/\bshallot\b/))return qty(1,'');
+  if(n.match(/\bred onion|yellow onion|white onion|sweet onion|onion\b/))return qty(0.5,'medium');
+  if(n.match(/\bgarlic\b/))return qty(2,'cloves',false);
+  if(n.match(/\bginger\b/))return qty(1,'tsp',false);
+  if(n.match(/\btomato paste\b/))return qty(1,'tbsp',false);
+  if(n.match(/\bcanned tomato|crushed tomato|diced tomato|tomato sauce\b/))return qty(7,'oz');
+  if(n.match(/\bcherry tomato|grape tomato\b/))return qty(0.5,'cup');
+  if(n.match(/\btomato\b/))return qty(1,'medium');
+  if(n.match(/\bcarrot\b/))return qty(1,'medium');
+  if(n.match(/\bcelery\b/))return qty(1,'stalk');
+  if(n.match(/\bbroccoli\b/))return qty(1,'cup florets');
+  if(n.match(/\bcauliflower\b/))return qty(1,'cup florets');
+  if(n.match(/\bspinach\b/))return qty(2,'cups');
+  if(n.match(/\bkale\b/))return qty(1.5,'cups');
+  if(n.match(/\barugula|rocket\b/))return qty(1.5,'cups');
+  if(n.match(/\blettuce|romaine|mixed greens|salad greens\b/))return qty(2,'cups');
+  if(n.match(/\bzucchini|courgette\b/))return qty(0.5,'medium');
+  if(n.match(/\bbell pepper\b/))return qty(0.5,'');
+  if(n.match(/\bjalapeño|serrano|chili pepper\b/))return qty(1,'',false);
+  if(n.match(/\bmushroom\b/))return qty(1,'cup sliced');
+  if(n.match(/\bcorn\b/))return qty(0.5,'cup');
+  if(n.match(/\bcucumber\b/))return qty(0.5,'');
+  if(n.match(/\bavocado\b/))return qty(0.5,'');
+  if(n.match(/\basparagus\b/))return qty(4,'spears');
+  if(n.match(/\bgreen beans\b/))return qty(0.5,'cup');
+  if(n.match(/\bpeas\b/))return qty(0.25,'cup');
+  if(n.match(/\bbok choy\b/))return qty(1,'cup chopped');
+  if(n.match(/\bcabbage\b/))return qty(1,'cup shredded');
+  if(n.match(/\bleek\b/))return qty(0.5,'');
+  if(n.match(/\beggplant|aubergine\b/))return qty(0.5,'medium');
+  if(n.match(/\bscallion|green onion|spring onion\b/))return qty(1,'stalk');
+  if(n.match(/\blemon\b/))return qty(0.5,'');
+  if(n.match(/\blime\b/))return qty(0.5,'');
+  // Canned / packaged extras
+  if(n.match(/\bparmesan rind\b/))return qty(1,'piece',false);
+  if(n.match(/\bbay leaf\b/))return qty(1,'',false);
+  // Fresh herbs
+  if(n.match(/\bparsley|cilantro|coriander|mint|dill|chives\b/))return qty(2,'tbsp chopped',false);
+  if(n.match(/\bbasil\b/))return qty(6,'leaves',false);
+  if(n.match(/\bthyme|rosemary|sage|oregano leaf\b/))return qty(2,'sprigs',false);
+  // Sauces & condiments
+  if(n.match(/\bsoy sauce|tamari\b/))return qty(1,'tbsp',false);
+  if(n.match(/\bfish sauce\b/))return qty(0.5,'tbsp',false);
+  if(n.match(/\bhoney\b/))return qty(1,'tbsp',false);
+  if(n.match(/\bmaple syrup\b/))return qty(1,'tbsp',false);
+  if(n.match(/\bteriyaki sauce\b/))return qty(2,'tbsp',false);
+  if(n.match(/\bhoisin\b/))return qty(1,'tbsp',false);
+  if(n.match(/\bvinegar\b/))return qty(1,'tbsp',false);
+  if(n.match(/\bdijon|mustard\b/))return qty(1,'tsp',false);
+  if(n.match(/\btahini\b/))return qty(1,'tbsp',false);
+  if(n.match(/\bpeanut butter|almond butter|nut butter\b/))return qty(2,'tbsp');
+  if(n.match(/\bsriracha|hot sauce\b/))return qty(1,'tsp',false);
+  if(n.match(/\bworcestershire\b/))return qty(1,'tsp',false);
+  if(n.match(/\bcoconut aminos\b/))return qty(1,'tbsp',false);
+  // Dried spices & seasonings (always fixed)
+  if(n.match(/\bsalt|pepper|paprika|cumin|turmeric|cinnamon|chili powder|cayenne|oregano|thyme|rosemary|bay leaves|coriander powder|cardamom|nutmeg|allspice|curry powder|garam masala|za.atar|sumac|harissa|smoked paprika|onion powder|garlic powder|italian seasoning\b/))return qty(1,'tsp',false);
+  // Nuts & seeds
+  if(n.match(/\bsesame seed\b/))return qty(1,'tbsp',false);
+  if(n.match(/\bflaxseed|chia seed|hemp seed|sunflower seed|pumpkin seed\b/))return qty(1,'tbsp',false);
+  if(n.match(/\balmonds|walnuts|pecans|cashews|pistachios|pine nuts\b/))return qty(2,'tbsp');
+  // Sweeteners
+  if(n.match(/\bsugar|brown sugar|powdered sugar\b/))return qty(1,'tbsp',false);
+  return null;
+}
+
 function renderIngredientList(){
   const r=activeRecipe;
   if(!r)return;
   document.getElementById('ingList').innerHTML=r.ingredients.map(ing=>{
-    const scaled=scaleIngredient(ing,currentScale,baseScale);
+    const amt=estimateAmount(ing,currentScale);
+    const amtHtml=amt?`<span class="ing-amount">${amt}</span>`:'';
     return`<li class="ing-row">
-      <span class="ing-name">${scaled}</span>
+      <span class="ing-name">${ing}${amtHtml}</span>
       <a class="ing-shop" href="${afLink(ing)}" target="_blank" rel="noopener sponsored"
          onclick="trackAffiliate('${r.name.replace(/'/g,"\\'")}','${ing}')">Shop on Amazon →</a>
     </li>`;

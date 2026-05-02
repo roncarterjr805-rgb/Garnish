@@ -1690,7 +1690,8 @@ const R=[
 let activeCat=null,activeRecipe=null,stepIdx=0,timerInterval=null,timerSecs=0,timerRunning=false,fromCookbook=false;
 let userRecipes=[];
 let currentScale=2,baseScale=2;
-// favorites stored directly in localStorage — no in-memory set
+let userFavorites=new Set(); // in-memory; loaded from Supabase on login
+let _favRowId=null;          // DB row id for the __FAVORITES__ record
 let exclusions=[];
 let tips={};        // { recipeIdx: [{text, votes, id}] }
 let votedTips={};   // { tipId: true }
@@ -2365,6 +2366,11 @@ supa.auth.onAuthStateChange((event, session) => {
   currentUser = session?.user || null;
   updateNavAuth();
   updateAdminPhotoBtn();
+  if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+    loadFavorites(); // async — fetches from Supabase DB
+  } else if (event === 'SIGNED_OUT') {
+    userFavorites = new Set(); _favRowId = null;
+  }
   updateFavBtn();
 });
 
@@ -2500,33 +2506,66 @@ function showToast(msg) {
   _favToastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
-// Read favorites from localStorage; fall back to session metadata if storage was cleared
-function readFavs() {
-  if (!currentUser) return [];
-  const k = 'gf_' + currentUser.id;
+// Load favorites from Supabase DB (__FAVORITES__ sentinel row)
+async function loadFavorites() {
+  if (!currentUser) { userFavorites = new Set(); _favRowId = null; return; }
   try {
-    const raw = localStorage.getItem(k);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    const { data } = await supa.from('recipes')
+      .select('id, ingredients')
+      .eq('user_id', currentUser.id)
+      .eq('name', '__FAVORITES__')
+      .limit(1);
+    const row = data && data[0];
+    if (row) {
+      _favRowId = row.id;
+      userFavorites = new Set(Array.isArray(row.ingredients) ? row.ingredients : []);
+    } else {
+      _favRowId = null;
+      userFavorites = new Set();
     }
-  } catch(e) {}
-  // If localStorage was wiped, try user_metadata written during previous sessions
-  const meta = currentUser.user_metadata?.favorites;
-  if (Array.isArray(meta) && meta.length > 0) {
-    try { localStorage.setItem(k, JSON.stringify(meta)); } catch(e) {}
-    return meta;
+  } catch(e) {
+    // DB unavailable — fall back to localStorage
+    try {
+      const raw = localStorage.getItem('gf_' + currentUser.id);
+      const parsed = raw ? JSON.parse(raw) : [];
+      userFavorites = new Set(Array.isArray(parsed) ? parsed : []);
+    } catch(e2) { userFavorites = new Set(); }
   }
-  return [];
+  updateFavBtn();
 }
 
-// Write favorites to localStorage only — no auth calls that trigger side-effects
-function writeFavs(names) {
-  if (!currentUser) return false;
-  try {
-    localStorage.setItem('gf_' + currentUser.id, JSON.stringify(names));
-    return true;
-  } catch(e) { return false; }
+// Persist favorites to Supabase DB (and localStorage as secondary backup)
+function saveFavorites() {
+  if (!currentUser) return;
+  const names = [...userFavorites];
+  try { localStorage.setItem('gf_' + currentUser.id, JSON.stringify(names)); } catch(e) {}
+  _saveFavsToDB(names).catch(() => {});
+}
+
+async function _saveFavsToDB(names) {
+  if (!currentUser) return;
+  const now = new Date().toISOString();
+  if (_favRowId) {
+    const { error } = await supa.from('recipes')
+      .update({ ingredients: names, updated_at: now })
+      .eq('id', _favRowId);
+    if (!error) return;
+    _favRowId = null; // row missing — fall through to upsert
+  }
+  // No cached row id — check DB then insert/update
+  const { data: existing } = await supa.from('recipes')
+    .select('id').eq('user_id', currentUser.id).eq('name', '__FAVORITES__').limit(1);
+  const row = existing && existing[0];
+  if (row) {
+    _favRowId = row.id;
+    await supa.from('recipes').update({ ingredients: names, updated_at: now }).eq('id', _favRowId);
+  } else {
+    const { data: ins } = await supa.from('recipes')
+      .insert({ user_id: currentUser.id, name: '__FAVORITES__', ingredients: names,
+                steps: [], emoji: '❤️', updated_at: now })
+      .select('id').limit(1);
+    if (ins && ins[0]) _favRowId = ins[0].id;
+  }
 }
 
 function updateFavBtn() {
@@ -2536,27 +2575,24 @@ function updateFavBtn() {
     btn.style.display = 'none'; return;
   }
   btn.style.display = 'block';
-  const isSaved = readFavs().includes(activeRecipe.name);
-  btn.textContent = isSaved ? '♥' : '♡';
-  btn.classList.toggle('active', isSaved);
-  btn.title = isSaved ? 'Remove from favorites' : 'Save to favorites';
+  const saved = userFavorites.has(activeRecipe.name);
+  btn.textContent = saved ? '♥' : '♡';
+  btn.classList.toggle('active', saved);
+  btn.title = saved ? 'Remove from favorites' : 'Save to favorites';
 }
 
 function toggleFavorite() {
   if (!currentUser) { openAuth(); return; }
   if (!activeRecipe || activeRecipe._isUserRecipe) return;
   const name = activeRecipe.name;
-  const favs = readFavs();
-  const idx  = favs.indexOf(name);
-  if (idx >= 0) {
-    favs.splice(idx, 1);
-    writeFavs(favs);
+  if (userFavorites.has(name)) {
+    userFavorites.delete(name);
     showToast('Removed from Favorites');
   } else {
-    favs.push(name);
-    const ok = writeFavs(favs);
-    showToast(ok ? 'Saved to Favorites ❤️' : '⚠️ Could not save — storage blocked');
+    userFavorites.add(name);
+    showToast('Saved to Favorites ❤️');
   }
+  saveFavorites();
   updateFavBtn();
 }
 
@@ -2580,7 +2616,7 @@ function switchCookbookTab(tab) {
 
 function renderFavoritesList() {
   const list = document.getElementById('favoritesList');
-  const favNames = readFavs();                             // always fresh from localStorage
+  const favNames = [...userFavorites];
   const matched  = favNames.map(n => R.find(r => r.name === n)).filter(Boolean);
 
   document.getElementById('favoritesCount').textContent =
@@ -2634,9 +2670,8 @@ function openFavRecipe(name) {
 }
 
 function unfavorite(name) {
-  const favs = readFavs();
-  const idx  = favs.indexOf(name);
-  if (idx >= 0) { favs.splice(idx, 1); writeFavs(favs); }
+  userFavorites.delete(name);
+  saveFavorites();
   renderFavoritesList();
   updateFavBtn();
 }
@@ -2661,6 +2696,7 @@ async function loadUserRecipes() {
     .from('recipes')
     .select('*')
     .eq('user_id', currentUser.id)
+    .neq('name', '__FAVORITES__')
     .order('created_at', { ascending: false });
 
   if (error) {

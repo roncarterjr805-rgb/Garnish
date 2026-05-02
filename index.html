@@ -2365,7 +2365,7 @@ supa.auth.onAuthStateChange((event, session) => {
   updateAdminPhotoBtn();
   // Only reload favorites from server on login/refresh — not on USER_UPDATED
   // (which fires after our own updateUser call and can race with local state)
-  if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
+  if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
     loadFavorites();
   } else if (event === 'SIGNED_OUT') {
     userFavorites = new Set();
@@ -2501,9 +2501,7 @@ function favKey() {
 function saveFavorites() {
   const k = favKey();
   if (!k) return;
-  localStorage.setItem(k, JSON.stringify([...userFavorites]));
-  // Best-effort sync to Supabase metadata (don't await — never blocks UI)
-  supa.auth.updateUser({ data: { favorites: [...userFavorites] } }).catch(() => {});
+  try { localStorage.setItem(k, JSON.stringify([...userFavorites])); } catch(e) {}
 }
 
 function loadFavorites() {
@@ -2566,6 +2564,8 @@ function switchCookbookTab(tab) {
 }
 
 function renderFavoritesList() {
+  // Always re-sync from localStorage before rendering — guards against any in-memory reset
+  loadFavorites();
   const list = document.getElementById('favoritesList');
   const favNames = [...userFavorites];
   const matched = favNames.map(name => R.find(r => r.name === name)).filter(Boolean);

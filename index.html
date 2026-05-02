@@ -1690,7 +1690,7 @@ const R=[
 let activeCat=null,activeRecipe=null,stepIdx=0,timerInterval=null,timerSecs=0,timerRunning=false,fromCookbook=false;
 let userRecipes=[];
 let currentScale=2,baseScale=2;
-let userFavorites=new Set(); // set of recipe names
+// favorites stored directly in localStorage — no in-memory set
 let exclusions=[];
 let tips={};        // { recipeIdx: [{text, votes, id}] }
 let votedTips={};   // { tipId: true }
@@ -2365,13 +2365,6 @@ supa.auth.onAuthStateChange((event, session) => {
   currentUser = session?.user || null;
   updateNavAuth();
   updateAdminPhotoBtn();
-  // Only reload favorites from server on login/refresh — not on USER_UPDATED
-  // (which fires after our own updateUser call and can race with local state)
-  if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-    loadFavorites();
-  } else if (event === 'SIGNED_OUT') {
-    userFavorites = new Set();
-  }
   updateFavBtn();
 });
 
@@ -2494,7 +2487,7 @@ function showAuthMsg(text, type) {
 }
 
 // ══════════════════════════════════════════════════════════
-// FAVORITES  (localStorage-backed, keyed per user)
+// FAVORITES  — direct localStorage, zero in-memory state
 // ══════════════════════════════════════════════════════════
 
 let _favToastTimer = null;
@@ -2507,52 +2500,53 @@ function showToast(msg) {
   _favToastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
-function favKey() {
-  return currentUser ? 'g_favs_' + currentUser.id : null;
-}
-
-function saveFavorites() {
-  const k = favKey();
-  if (!k) return;
-  try { localStorage.setItem(k, JSON.stringify([...userFavorites])); } catch(e) {}
-}
-
-function loadFavorites() {
-  // Merges stored favorites into the in-memory set — never replaces/wipes it
-  const k = favKey();
-  if (!k) return;
+// Read the current user's favorites array straight from localStorage
+function readFavs() {
+  if (!currentUser) return [];
   try {
-    const saved = JSON.parse(localStorage.getItem(k));
-    if (Array.isArray(saved)) saved.forEach(n => userFavorites.add(n));
-  } catch(e) {}
+    const raw = localStorage.getItem('gf_' + currentUser.id);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch(e) { return []; }
+}
+
+// Write the favorites array straight to localStorage; returns true on success
+function writeFavs(names) {
+  if (!currentUser) return false;
+  try {
+    localStorage.setItem('gf_' + currentUser.id, JSON.stringify(names));
+    return true;
+  } catch(e) { return false; }
 }
 
 function updateFavBtn() {
   const btn = document.getElementById('favBtn');
   if (!btn) return;
-  // Only show for logged-in users viewing a built-in recipe
   if (!currentUser || !activeRecipe || activeRecipe._isUserRecipe) {
     btn.style.display = 'none'; return;
   }
   btn.style.display = 'block';
-  const saved = userFavorites.has(activeRecipe.name);
-  btn.textContent = saved ? '♥' : '♡';
-  btn.classList.toggle('active', saved);
-  btn.title = saved ? 'Remove from favorites' : 'Save to favorites';
+  const isSaved = readFavs().includes(activeRecipe.name);
+  btn.textContent = isSaved ? '♥' : '♡';
+  btn.classList.toggle('active', isSaved);
+  btn.title = isSaved ? 'Remove from favorites' : 'Save to favorites';
 }
 
 function toggleFavorite() {
   if (!currentUser) { openAuth(); return; }
   if (!activeRecipe || activeRecipe._isUserRecipe) return;
   const name = activeRecipe.name;
-  if (userFavorites.has(name)) {
-    userFavorites.delete(name);
+  const favs = readFavs();
+  const idx  = favs.indexOf(name);
+  if (idx >= 0) {
+    favs.splice(idx, 1);
+    writeFavs(favs);
     showToast('Removed from Favorites');
   } else {
-    userFavorites.add(name);
-    showToast('Saved to Favorites ❤️');
+    favs.push(name);
+    const ok = writeFavs(favs);
+    showToast(ok ? 'Saved to Favorites ❤️' : '⚠️ Could not save — storage blocked');
   }
-  saveFavorites();
   updateFavBtn();
 }
 
@@ -2575,10 +2569,9 @@ function switchCookbookTab(tab) {
 }
 
 function renderFavoritesList() {
-  // Reads directly from in-memory userFavorites — loaded on login, updated on toggle
   const list = document.getElementById('favoritesList');
-  const favNames = [...userFavorites];
-  const matched = favNames.map(name => R.find(r => r.name === name)).filter(Boolean);
+  const favNames = readFavs();                             // always fresh from localStorage
+  const matched  = favNames.map(n => R.find(r => r.name === n)).filter(Boolean);
   document.getElementById('favoritesCount').textContent =
     matched.length === 0 ? 'No favorites yet' :
     matched.length === 1 ? '1 saved recipe' : `${matched.length} saved recipes`;
@@ -2630,8 +2623,9 @@ function openFavRecipe(name) {
 }
 
 function unfavorite(name) {
-  userFavorites.delete(name);
-  saveFavorites();
+  const favs = readFavs();
+  const idx  = favs.indexOf(name);
+  if (idx >= 0) { favs.splice(idx, 1); writeFavs(favs); }
   renderFavoritesList();
   updateFavBtn();
 }

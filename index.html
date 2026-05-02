@@ -2518,14 +2518,13 @@ function saveFavorites() {
 }
 
 function loadFavorites() {
-  // Called only on sign-in / page load — NOT mid-session
+  // Merges stored favorites into the in-memory set — never replaces/wipes it
   const k = favKey();
-  if (!k) { userFavorites = new Set(); return; }
+  if (!k) return;
   try {
     const saved = JSON.parse(localStorage.getItem(k));
-    if (Array.isArray(saved)) { userFavorites = new Set(saved); return; }
+    if (Array.isArray(saved)) saved.forEach(n => userFavorites.add(n));
   } catch(e) {}
-  userFavorites = new Set();
 }
 
 function updateFavBtn() {

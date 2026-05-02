@@ -2545,9 +2545,6 @@ function toggleFavorite() {
   } else {
     favs.push(name);
     const ok = writeFavs(favs);
-    const lsKey2 = 'gf_' + currentUser.id;
-    const verify = (() => { try { return localStorage.getItem(lsKey2); } catch(e) { return 'ERROR'; } })();
-    console.log('[FAV SAVE] uid='+currentUser.id+' key='+lsKey2+' ok='+ok+' verify='+verify);
     showToast(ok ? 'Saved to Favorites ❤️' : '⚠️ Could not save — storage blocked');
   }
   updateFavBtn();
@@ -2576,13 +2573,6 @@ function renderFavoritesList() {
   const favNames = readFavs();                             // always fresh from localStorage
   const matched  = favNames.map(n => R.find(r => r.name === n)).filter(Boolean);
 
-  // --- DEBUG: show storage state so we can diagnose the bug ---
-  const uid  = currentUser ? currentUser.id : '(no user)';
-  const lsKey = currentUser ? 'gf_' + currentUser.id : '(no key)';
-  const lsRaw = (() => { try { return localStorage.getItem(lsKey) || 'null'; } catch(e) { return 'ERROR:'+e; } })();
-  console.log('[FAV DEBUG] uid='+uid+' key='+lsKey+' stored='+lsRaw+' favNames='+JSON.stringify(favNames)+' matched='+matched.length);
-  // ---
-
   document.getElementById('favoritesCount').textContent =
     matched.length === 0 ? 'No favorites yet' :
     matched.length === 1 ? '1 saved recipe' : `${matched.length} saved recipes`;
@@ -2592,9 +2582,6 @@ function renderFavoritesList() {
         <div class="cookbook-empty-icon">♡</div>
         <div class="cookbook-empty-title">No favorites yet</div>
         <div class="cookbook-empty-sub">Tap the ♡ on any recipe to save it here for quick access.</div>
-        <div style="margin-top:16px;font-size:11px;color:#aaa;word-break:break-all;text-align:left">
-          DEBUG uid=${uid}<br>key=${lsKey}<br>stored=${escHtml(lsRaw)}<br>favNames=${escHtml(JSON.stringify(favNames))}
-        </div>
       </div>`;
     return;
   }

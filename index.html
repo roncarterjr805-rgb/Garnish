@@ -196,6 +196,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .screen{display:none}.screen.active{display:block}
 .nav{position:sticky;top:0;z-index:200;background:var(--color-background-primary,#fff);border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.1));padding:0 16px;height:52px;display:flex;align-items:center;justify-content:space-between}
 .nav-logo{font-size:17px;font-weight:500;color:var(--gm);display:flex;align-items:center;gap:7px}
+button.nav-logo{background:none;border:none;cursor:pointer;padding:0}
+button.nav-logo:hover{opacity:.75}
 .nav-back{display:flex;align-items:center;gap:5px;font-size:14px;color:var(--color-text-secondary,#666);background:none;border:none;cursor:pointer;padding:0}
 .nav-back:hover{color:var(--color-text-primary,#111)}
 .nav-right{font-size:12px;color:var(--color-text-secondary,#666)}
@@ -724,10 +726,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <!-- SCREEN 6: MY COOKBOOK -->
 <div id="cookbookScreen" class="screen">
   <nav class="nav" style="position:relative">
-    <button class="nav-back" onclick="showCats()">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Home
-    </button>
+    <button class="nav-logo" onclick="showCats()">🌿 Garnish</button>
     <button class="nav-avatar js-nav-avatar" id="cookbookAvatar" onclick="toggleUserMenu(event)"></button>
     <div class="user-menu js-user-menu" id="cookbookUserMenu">
       <div class="user-menu-email js-user-menu-email" id="cookbookUserEmail"></div>
@@ -876,10 +875,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <!-- SCREEN 2: RECIPE LIST -->
 <div id="listScreen" class="screen">
   <nav class="nav" style="position:relative">
-    <button class="nav-back" onclick="showCats()">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Categories
-    </button>
+    <button class="nav-logo" onclick="showCats()">🌿 Garnish</button>
     <button class="nav-avatar js-nav-avatar" style="display:none" onclick="toggleUserMenu(event)"></button>
     <div class="user-menu js-user-menu">
       <div class="user-menu-email js-user-menu-email"></div>
@@ -912,10 +908,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <!-- SCREEN 3: RECIPE DETAIL -->
 <div id="detailScreen" class="screen">
   <nav class="nav" style="display:flex;align-items:center;position:relative">
-    <button class="nav-back" onclick="backToList()">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span id="detBackLbl">Recipes</span>
-    </button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="nav-logo" onclick="showCats()">🌿 Garnish</button>
+      <span style="width:1px;height:14px;background:var(--color-border-tertiary,rgba(0,0,0,.15))"></span>
+      <button class="nav-back" onclick="backToList()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span id="detBackLbl">Recipes</span>
+      </button>
+    </div>
     <button class="fav-btn" id="favBtn" onclick="toggleFavorite()" title="Save to favorites" style="display:none">♡</button>
     <button class="nav-avatar js-nav-avatar" style="display:none;margin-left:8px" onclick="toggleUserMenu(event)"></button>
     <div class="user-menu js-user-menu">
@@ -978,10 +978,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div id="cookScreen" class="screen">
   <div class="chef-view-bar" id="chefBar">📱 Screen awake · Chef View active</div>
   <nav class="nav" style="position:relative">
-    <button class="nav-back" onclick="backToDetail()">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Recipe
-    </button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="nav-logo" onclick="showCats()">🌿 Garnish</button>
+      <span style="width:1px;height:14px;background:var(--color-border-tertiary,rgba(0,0,0,.15))"></span>
+      <button class="nav-back" onclick="backToDetail()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Recipe
+      </button>
+    </div>
     <button class="nav-avatar js-nav-avatar" style="display:none" onclick="toggleUserMenu(event)"></button>
     <div class="user-menu js-user-menu">
       <div class="user-menu-email js-user-menu-email"></div>
@@ -1026,10 +1030,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <!-- SCREEN 5: DONE -->
 <div id="doneScreen" class="screen">
   <nav class="nav" style="position:relative">
-    <button class="nav-back" onclick="backToDetail()">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Recipe
-    </button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="nav-logo" onclick="showCats()">🌿 Garnish</button>
+      <span style="width:1px;height:14px;background:var(--color-border-tertiary,rgba(0,0,0,.15))"></span>
+      <button class="nav-back" onclick="backToDetail()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Recipe
+      </button>
+    </div>
     <button class="nav-avatar js-nav-avatar" style="display:none" onclick="toggleUserMenu(event)"></button>
     <div class="user-menu js-user-menu">
       <div class="user-menu-email js-user-menu-email"></div>

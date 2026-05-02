@@ -659,13 +659,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="nav-auth">
       <button class="nav-cookbook-btn" id="navFavoritesBtn" style="display:none" onclick="openFavorites()">❤️ My Favorites</button>
       <button class="nav-cookbook-btn" id="navCookbookBtn" style="display:none" onclick="openCookbook()">📖 My Cookbook</button>
-      <button class="nav-avatar" id="navAvatar" style="display:none" onclick="toggleUserMenu()"></button>
+      <button class="nav-avatar js-nav-avatar" id="navAvatar" style="display:none" onclick="toggleUserMenu(event)"></button>
       <button class="nav-login-btn" id="navLoginBtn" onclick="openAuth()">Sign in</button>
     </div>
-    <div class="user-menu" id="userMenu">
-      <div class="user-menu-email" id="userMenuEmail"></div>
-      <button class="user-menu-item" onclick="openFavorites();toggleUserMenu()">❤️ Favorites</button>
-      <button class="user-menu-item" onclick="openCookbook();toggleUserMenu()">📖 My Cookbook</button>
+    <div class="user-menu js-user-menu" id="userMenu">
+      <div class="user-menu-email js-user-menu-email" id="userMenuEmail"></div>
+      <button class="user-menu-item" onclick="openFavorites();closeAllUserMenus()">❤️ Favorites</button>
+      <button class="user-menu-item" onclick="openCookbook();closeAllUserMenus()">📖 My Cookbook</button>
       <button class="user-menu-item danger" onclick="signOut()">Sign out</button>
     </div>
   </nav>
@@ -728,11 +728,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Home
     </button>
-    <button class="nav-avatar" id="cookbookAvatar" onclick="toggleUserMenu()"></button>
-    <div class="user-menu" id="cookbookUserMenu">
-      <div class="user-menu-email" id="cookbookUserEmail"></div>
-      <button class="user-menu-item" onclick="openFavorites()">❤️ Favorites</button>
-      <button class="user-menu-item" onclick="openCookbook()">📖 My Cookbook</button>
+    <button class="nav-avatar js-nav-avatar" id="cookbookAvatar" onclick="toggleUserMenu(event)"></button>
+    <div class="user-menu js-user-menu" id="cookbookUserMenu">
+      <div class="user-menu-email js-user-menu-email" id="cookbookUserEmail"></div>
+      <button class="user-menu-item" onclick="openFavorites();closeAllUserMenus()">❤️ Favorites</button>
+      <button class="user-menu-item" onclick="openCookbook();closeAllUserMenus()">📖 My Cookbook</button>
       <button class="user-menu-item danger" onclick="signOut()">Sign out</button>
     </div>
   </nav>
@@ -875,11 +875,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <!-- SCREEN 2: RECIPE LIST -->
 <div id="listScreen" class="screen">
-  <nav class="nav">
+  <nav class="nav" style="position:relative">
     <button class="nav-back" onclick="showCats()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Categories
     </button>
+    <button class="nav-avatar js-nav-avatar" style="display:none" onclick="toggleUserMenu(event)"></button>
+    <div class="user-menu js-user-menu">
+      <div class="user-menu-email js-user-menu-email"></div>
+      <button class="user-menu-item" onclick="openFavorites();closeAllUserMenus()">❤️ Favorites</button>
+      <button class="user-menu-item" onclick="openCookbook();closeAllUserMenus()">📖 My Cookbook</button>
+      <button class="user-menu-item danger" onclick="signOut()">Sign out</button>
+    </div>
   </nav>
   <div class="list-hdr">
     <div class="list-title" id="listTitle"></div>
@@ -904,12 +911,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <!-- SCREEN 3: RECIPE DETAIL -->
 <div id="detailScreen" class="screen">
-  <nav class="nav" style="display:flex;align-items:center">
+  <nav class="nav" style="display:flex;align-items:center;position:relative">
     <button class="nav-back" onclick="backToList()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span id="detBackLbl">Recipes</span>
     </button>
     <button class="fav-btn" id="favBtn" onclick="toggleFavorite()" title="Save to favorites" style="display:none">♡</button>
+    <button class="nav-avatar js-nav-avatar" style="display:none;margin-left:8px" onclick="toggleUserMenu(event)"></button>
+    <div class="user-menu js-user-menu">
+      <div class="user-menu-email js-user-menu-email"></div>
+      <button class="user-menu-item" onclick="openFavorites();closeAllUserMenus()">❤️ Favorites</button>
+      <button class="user-menu-item" onclick="openCookbook();closeAllUserMenus()">📖 My Cookbook</button>
+      <button class="user-menu-item danger" onclick="signOut()">Sign out</button>
+    </div>
   </nav>
   <div class="det-wrap">
     <div class="det-hero-wrap">
@@ -963,11 +977,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <!-- SCREEN 4: COOKING MODE -->
 <div id="cookScreen" class="screen">
   <div class="chef-view-bar" id="chefBar">📱 Screen awake · Chef View active</div>
-  <nav class="nav">
+  <nav class="nav" style="position:relative">
     <button class="nav-back" onclick="backToDetail()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Recipe
     </button>
+    <button class="nav-avatar js-nav-avatar" style="display:none" onclick="toggleUserMenu(event)"></button>
+    <div class="user-menu js-user-menu">
+      <div class="user-menu-email js-user-menu-email"></div>
+      <button class="user-menu-item" onclick="openFavorites();closeAllUserMenus()">❤️ Favorites</button>
+      <button class="user-menu-item" onclick="openCookbook();closeAllUserMenus()">📖 My Cookbook</button>
+      <button class="user-menu-item danger" onclick="signOut()">Sign out</button>
+    </div>
   </nav>
   <div class="ck-wrap">
     <img id="ckHero" class="ck-hero" src="" alt="" loading="lazy"/>
@@ -1004,11 +1025,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <!-- SCREEN 5: DONE -->
 <div id="doneScreen" class="screen">
-  <nav class="nav">
+  <nav class="nav" style="position:relative">
     <button class="nav-back" onclick="backToDetail()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Recipe
     </button>
+    <button class="nav-avatar js-nav-avatar" style="display:none" onclick="toggleUserMenu(event)"></button>
+    <div class="user-menu js-user-menu">
+      <div class="user-menu-email js-user-menu-email"></div>
+      <button class="user-menu-item" onclick="openFavorites();closeAllUserMenus()">❤️ Favorites</button>
+      <button class="user-menu-item" onclick="openCookbook();closeAllUserMenus()">📖 My Cookbook</button>
+      <button class="user-menu-item danger" onclick="signOut()">Sign out</button>
+    </div>
   </nav>
   <div class="done-wrap">
     <div class="done-emoji">🎉</div>
@@ -2379,36 +2407,44 @@ supa.auth.onAuthStateChange((event, session) => {
 // ══════════════════════════════════════════════════════════
 function updateNavAuth() {
   const loginBtn  = document.getElementById('navLoginBtn');
-  const avatar    = document.getElementById('navAvatar');
   const cbBtn     = document.getElementById('navCookbookBtn');
   const favBtn    = document.getElementById('navFavoritesBtn');
+  const avatars   = document.querySelectorAll('.js-nav-avatar');
+  const emails    = document.querySelectorAll('.js-user-menu-email');
 
   if (currentUser) {
-    loginBtn.style.display  = 'none';
-    avatar.style.display    = 'flex';
-    cbBtn.style.display     = 'flex';
-    favBtn.style.display    = 'flex';
+    if (loginBtn) loginBtn.style.display = 'none';
+    if (cbBtn)    cbBtn.style.display    = 'flex';
+    if (favBtn)   favBtn.style.display   = 'flex';
     const initials = (currentUser.email || 'U').substring(0, 1).toUpperCase();
-    avatar.textContent = initials;
-    document.getElementById('userMenuEmail').textContent = currentUser.email;
+    avatars.forEach(a => { a.style.display = 'flex'; a.textContent = initials; });
+    emails.forEach(el => { el.textContent = currentUser.email; });
   } else {
-    loginBtn.style.display  = 'flex';
-    avatar.style.display    = 'none';
-    cbBtn.style.display     = 'none';
-    favBtn.style.display    = 'none';
+    if (loginBtn) loginBtn.style.display = 'flex';
+    if (cbBtn)    cbBtn.style.display    = 'none';
+    if (favBtn)   favBtn.style.display   = 'none';
+    avatars.forEach(a => { a.style.display = 'none'; });
   }
 }
 
-function toggleUserMenu() {
-  document.getElementById('userMenu').classList.toggle('open');
-  // Close on next outside click
+function toggleUserMenu(e) {
+  const btn = e?.currentTarget || e?.target;
+  const nav = btn?.closest('nav');
+  const target = nav?.querySelector('.js-user-menu') || document.getElementById('userMenu');
+  if (!target) return;
+  const wasOpen = target.classList.contains('open');
+  closeAllUserMenus();
+  if (!wasOpen) target.classList.add('open');
   setTimeout(() => {
     document.addEventListener('click', closeUserMenuOutside, { once: true });
   }, 0);
 }
+function closeAllUserMenus() {
+  document.querySelectorAll('.user-menu.open').forEach(m => m.classList.remove('open'));
+}
 function closeUserMenuOutside(e) {
-  const menu = document.getElementById('userMenu');
-  if (!menu.contains(e.target)) menu.classList.remove('open');
+  if (e.target.closest('.user-menu') || e.target.classList.contains('js-nav-avatar')) return;
+  closeAllUserMenus();
 }
 
 // ══════════════════════════════════════════════════════════

@@ -2500,23 +2500,32 @@ function showToast(msg) {
   _favToastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
-// Read the current user's favorites array straight from localStorage
+// Read favorites: localStorage first, Supabase user_metadata as fallback
 function readFavs() {
   if (!currentUser) return [];
+  const k = 'gf_' + currentUser.id;
   try {
-    const raw = localStorage.getItem('gf_' + currentUser.id);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch(e) { return []; }
+    const raw = localStorage.getItem(k);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch(e) {}
+  // localStorage empty or cleared — recover from Supabase session metadata
+  const meta = currentUser.user_metadata?.favorites;
+  if (Array.isArray(meta) && meta.length > 0) {
+    try { localStorage.setItem(k, JSON.stringify(meta)); } catch(e) {}
+    return meta;
+  }
+  return [];
 }
 
-// Write the favorites array straight to localStorage; returns true on success
+// Write favorites: localStorage + Supabase user_metadata backup (non-blocking)
 function writeFavs(names) {
   if (!currentUser) return false;
-  try {
-    localStorage.setItem('gf_' + currentUser.id, JSON.stringify(names));
-    return true;
-  } catch(e) { return false; }
+  try { localStorage.setItem('gf_' + currentUser.id, JSON.stringify(names)); } catch(e) {}
+  supa.auth.updateUser({ data: { favorites: names } }).catch(() => {});
+  return true;
 }
 
 function updateFavBtn() {

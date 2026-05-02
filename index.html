@@ -2500,7 +2500,7 @@ function showToast(msg) {
   _favToastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
-// Read favorites: localStorage first, Supabase user_metadata as fallback
+// Read favorites from localStorage; fall back to session metadata if storage was cleared
 function readFavs() {
   if (!currentUser) return [];
   const k = 'gf_' + currentUser.id;
@@ -2511,7 +2511,7 @@ function readFavs() {
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
   } catch(e) {}
-  // localStorage empty or cleared — recover from Supabase session metadata
+  // If localStorage was wiped, try user_metadata written during previous sessions
   const meta = currentUser.user_metadata?.favorites;
   if (Array.isArray(meta) && meta.length > 0) {
     try { localStorage.setItem(k, JSON.stringify(meta)); } catch(e) {}
@@ -2520,12 +2520,13 @@ function readFavs() {
   return [];
 }
 
-// Write favorites: localStorage + Supabase user_metadata backup (non-blocking)
+// Write favorites to localStorage only — no auth calls that trigger side-effects
 function writeFavs(names) {
   if (!currentUser) return false;
-  try { localStorage.setItem('gf_' + currentUser.id, JSON.stringify(names)); } catch(e) {}
-  supa.auth.updateUser({ data: { favorites: names } }).catch(() => {});
-  return true;
+  try {
+    localStorage.setItem('gf_' + currentUser.id, JSON.stringify(names));
+    return true;
+  } catch(e) { return false; }
 }
 
 function updateFavBtn() {

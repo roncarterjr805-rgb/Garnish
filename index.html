@@ -1723,7 +1723,7 @@ const R=[
 // ══════════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════════
-let activeCat=null,activeRecipe=null,stepIdx=0,timerInterval=null,timerSecs=0,timerRunning=false,fromCookbook=false;
+let activeCat=null,activeRecipe=null,stepIdx=0,timerInterval=null,timerSecs=0,timerRunning=false,timerEndTime=null,fromCookbook=false;
 let userRecipes=[];
 let currentScale=2,baseScale=2;
 let userFavorites=new Set(); // in-memory; loaded from Supabase on login
@@ -2361,14 +2361,40 @@ function showDone(){
 }
 
 // ══════════════════════════════════════════════════════════
-// TIMER
+// TIMER — wall-clock based so mobile throttling doesn't skew it
 // ══════════════════════════════════════════════════════════
+function _stopTimer(){clearInterval(timerInterval);timerInterval=null;timerRunning=false;}
 function toggleTimer(){
-  if(timerRunning){clearInterval(timerInterval);timerRunning=false;document.getElementById('timerStartBtn').textContent='Resume';}
-  else{timerRunning=true;document.getElementById('timerStartBtn').textContent='Pause';
-    timerInterval=setInterval(()=>{timerSecs--;updateTimerDisp();if(timerSecs<=0){clearInterval(timerInterval);timerRunning=false;document.getElementById('timerStartBtn').textContent='Done!';document.getElementById('timerDisp').textContent='0:00';}},1000);}
+  if(timerRunning){
+    // Pause — snapshot real remaining time from wall clock
+    timerSecs=Math.max(0,Math.round((timerEndTime-Date.now())/1000));
+    timerEndTime=null;
+    _stopTimer();
+    document.getElementById('timerStartBtn').textContent='Resume';
+    updateTimerDisp();
+  } else {
+    timerEndTime=Date.now()+timerSecs*1000;
+    timerRunning=true;
+    document.getElementById('timerStartBtn').textContent='Pause';
+    timerInterval=setInterval(()=>{
+      const rem=Math.max(0,Math.round((timerEndTime-Date.now())/1000));
+      timerSecs=rem;
+      updateTimerDisp();
+      if(rem<=0){
+        _stopTimer();timerEndTime=null;
+        document.getElementById('timerStartBtn').textContent='Done!';
+        document.getElementById('timerDisp').textContent='0:00';
+        if(navigator.vibrate)navigator.vibrate([300,100,300]);
+      }
+    },500);
+  }
 }
-function resetTimer(){clearInterval(timerInterval);timerRunning=false;timerSecs=activeRecipe.steps[stepIdx].timer?activeRecipe.steps[stepIdx].timer.secs:0;document.getElementById('timerStartBtn').textContent='Start';updateTimerDisp();}
+function resetTimer(){
+  _stopTimer();timerEndTime=null;
+  timerSecs=activeRecipe.steps[stepIdx].timer?activeRecipe.steps[stepIdx].timer.secs:0;
+  document.getElementById('timerStartBtn').textContent='Start';
+  updateTimerDisp();
+}
 function updateTimerDisp(){const m=Math.floor(timerSecs/60),s=timerSecs%60;document.getElementById('timerDisp').textContent=m+':'+(s<10?'0':'')+s;}
 
 // ══════════════════════════════════════════════════════════
@@ -2376,7 +2402,23 @@ function updateTimerDisp(){const m=Math.floor(timerSecs/60),s=timerSecs%60;docum
 // ══════════════════════════════════════════════════════════
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 // Re-acquire wake lock after visibility change (OS can release it)
-document.addEventListener('visibilitychange',()=>{if(chefViewOn&&document.visibilityState==='visible')requestWakeLock();});
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){
+    if(chefViewOn)requestWakeLock();
+    // Resync timer display after returning from background / screen-lock
+    if(timerRunning&&timerEndTime){
+      const rem=Math.max(0,Math.round((timerEndTime-Date.now())/1000));
+      timerSecs=rem;
+      updateTimerDisp();
+      if(rem<=0){
+        _stopTimer();timerEndTime=null;
+        document.getElementById('timerStartBtn').textContent='Done!';
+        document.getElementById('timerDisp').textContent='0:00';
+        if(navigator.vibrate)navigator.vibrate([300,100,300]);
+      }
+    }
+  }
+});
 
 // ══════════════════════════════════════════════════════════
 // SUPABASE SETUP

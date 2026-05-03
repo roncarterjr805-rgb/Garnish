@@ -1782,7 +1782,7 @@ function doSpin(){
     slots.forEach((id,i)=>{document.getElementById(id).textContent=vals[i][Math.floor(Math.random()*vals[i].length)];});
     if(typeof _playSpinTick==='function')_playSpinTick();
     count++;
-    if(count>14){
+    if(count>62){
       clearInterval(interval);
       slots.forEach(id=>document.getElementById(id).classList.remove('spinning'));
       if(typeof _playSpinWin==='function')_playSpinWin();
